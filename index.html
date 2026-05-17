@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VendaPRO — CRM Lunettes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --sidebar: #0f172a;
+  --sidebar-hover: #1e293b;
+  --accent: #2563eb;
+  --accent2: #059669;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --purple: #7c3aed;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ─── LOGIN ─── */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+}
+.login-card {
+  background: #fff; border-radius: 20px; padding: 40px 36px; width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.login-logo { text-align: center; margin-bottom: 28px; }
+.login-logo .logo-icon {
+  width: 56px; height: 56px; background: var(--accent); border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px; color: #fff; margin-bottom: 12px;
+}
+.login-logo h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+.login-logo p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+.form-field input {
+  width: 100%; padding: 10px 14px; border-radius: 8px; font-size: 13px;
+  border: 1.5px solid var(--border2); font-family: inherit; transition: border .2s;
+  background: #f8fafc; color: var(--text);
+}
+.form-field input:focus { outline: none; border-color: var(--accent); background: #fff; }
+.login-btn {
+  width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  background: var(--accent); color: #fff; border: none; cursor: pointer; font-family: inherit;
+  transition: background .2s; margin-top: 8px; letter-spacing: .02em;
+}
+.login-btn:hover { background: #1d4ed8; }
+.login-error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #dc2626; margin-bottom: 14px; display: none; }
+.login-hint { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: 16px; }
+.login-hint b { color: var(--text); }
+
+/* ─── APP LAYOUT ─── */
+#app { display: none; height: 100vh; overflow: hidden; }
+.layout { display: flex; height: 100vh; }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 220px; background: var(--sidebar); color: #94a3b8; flex-shrink: 0;
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 18px 16px 14px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-logo .logo-sq {
+  width: 30px; height: 30px; background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0;
+}
+.sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; }
+.sidebar-logo span b { color: #60a5fa; }
+.nav-sec { padding: 14px 12px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #475569; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px; padding: 9px 14px; cursor: pointer;
+  border-radius: 8px; margin: 1px 8px; transition: all .15s; font-size: 13px;
+}
+.nav-item:hover { background: var(--sidebar-hover); color: #e2e8f0; }
+.nav-item.active { background: var(--accent); color: #fff; }
+.nav-item i { font-size: 16px; width: 18px; flex-shrink: 0; }
+.nav-item .badge-count {
+  margin-left: auto; background: rgba(255,255,255,0.15); color: #fff;
+  border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 600;
+}
+.nav-item.active .badge-count { background: rgba(255,255,255,0.25); }
+.sidebar-footer {
+  margin-top: auto; padding: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+}
+.user-row {
+  display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 8px;
+  cursor: pointer; transition: background .15s;
+}
+.user-row:hover { background: var(--sidebar-hover); }
+.avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.user-row .uname { font-size: 12.5px; color: #e2e8f0; font-weight: 500; }
+.user-row .urole { font-size: 11px; color: #64748b; }
+
+/* ─── MAIN ─── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 20px;
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+.topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+.search-box {
+  display: flex; align-items: center; gap: 7px; background: var(--bg);
+  border: 1px solid var(--border2); border-radius: 8px; padding: 6px 12px; min-width: 200px;
+}
+.search-box input { border: none; background: transparent; font-family: inherit; font-size: 13px; color: var(--text); width: 100%; }
+.search-box input:focus { outline: none; }
+.search-box input::placeholder { color: var(--muted); }
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── BADGES ─── */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.b-blue { background: #eff6ff; color: #1d4ed8; }
+.b-green { background: #f0fdf4; color: #166534; }
+.b-orange { background: #fff7ed; color: #c2410c; }
+.b-red { background: #fef2f2; color: #dc2626; }
+.b-purple { background: #f5f3ff; color: #6d28d9; }
+.b-gray { background: #f1f5f9; color: #64748b; }
+.b-online { background: #dcfce7; color: #15803d; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+  border-radius: 8px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+  font-weight: 500; border: 1px solid var(--border2); background: var(--card);
+  color: var(--text); transition: all .15s;
+}
+.btn:hover { background: var(--bg); }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-success { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+.btn-success:hover { background: #047857; }
+.btn-purple { background: var(--purple); color: #fff; border-color: var(--purple); }
+.btn-purple:hover { background: #6d28d9; }
+.btn-danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; }
+
+/* ─── CARDS ─── */
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+.card-hdr { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-hdr-title { font-size: 13px; font-weight: 600; }
+.card-body { padding: 14px 16px; }
+
+/* ─── METRICS ─── */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+.metric { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; box-shadow: var(--shadow); }
+.metric-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+.metric-val { font-size: 24px; font-weight: 600; line-height: 1.2; margin-bottom: 2px; }
+.metric-sub { font-size: 11.5px; color: var(--muted); }
+.trend-up { color: var(--accent2); font-size: 11px; font-weight: 600; }
+.trend-dn { color: var(--danger); font-size: 11px; font-weight: 600; }
+
+/* ─── TABLE ─── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { font-size: 11px; color: var(--muted); font-weight: 600; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .05em; }
+.tbl td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12.5px; vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover td { background: #f8fafc; }
+.tbl-action { color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 500; }
+
+/* ─── PROGRESS ─── */
+.progress { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.progress-bar { height: 100%; border-radius: 3px; }
+
+/* ─── GRIDS ─── */
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.row3 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+/* ─── ACTIVITY ─── */
+.activity-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.activity-item:last-child { border-bottom: none; }
+.act-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.act-text { flex: 1; font-size: 12.5px; line-height: 1.5; }
+.act-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+/* ─── PIPELINE ─── */
+.pipeline-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.pipe-col { background: #f8fafc; border-radius: 10px; padding: 10px; border: 1px solid var(--border); }
+.pipe-col-hdr { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.deal-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s; }
+.deal-card:hover { border-color: var(--accent); }
+.deal-card.won { border-left: 3px solid var(--accent2); opacity: .8; }
+.deal-name { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+.deal-co { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.deal-footer { display: flex; justify-content: space-between; align-items: center; }
+.deal-amt { font-size: 12px; font-weight: 600; color: var(--accent); }
+.deal-pct { font-size: 10px; color: var(--muted); }
+
+/* ─── COMMANDES ─── */
+.cmd-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+.cmd-col { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.cmd-col:last-child { border-right: none; }
+.cmd-col-hdr { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: #f8fafc; }
+.cmd-col-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.cmd-col-title { font-size: 12px; font-weight: 600; flex: 1; }
+.cmd-col-cnt { background: var(--bg); border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.cmd-col-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.ocmd { background: var(--card); border: 1px solid var(--border); border-radius: 9px; overflow: hidden; box-shadow: var(--shadow); transition: border-color .15s; }
+.ocmd:hover { border-color: #93c5fd; }
+.ocmd.atelier { border-left: 3px solid var(--purple); }
+.ocmd.validated { border-left: 3px solid var(--accent2); }
+.ocmd-top { padding: 10px 12px 8px; }
+.ocmd-ref { font-size: 11px; color: var(--muted); margin-bottom: 2px; display: flex; justify-content: space-between; }
+.ocmd-client { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.ocmd-items { font-size: 11.5px; color: var(--muted); margin-bottom: 6px; }
+.ocmd-meta { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.ocmd-amt { font-size: 14px; font-weight: 600; color: var(--accent); }
+.ocmd-footer { padding: 8px 12px; border-top: 1px solid var(--border); background: #f8fafc; display: flex; gap: 5px; flex-wrap: wrap; }
+.ocmd-footer.atelier-bg { background: #f5f3ff; }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--purple); animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+.atelier-row { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f5f3ff; border-top: 1px solid var(--border); font-size: 11.5px; color: #6d28d9; }
+.cmd-steps { display: flex; gap: 2px; margin: 4px 0 6px; }
+.cmd-step { flex: 1; height: 3px; border-radius: 2px; }
+.cmd-step.done { background: var(--accent); }
+.cmd-step.active { background: var(--warn); }
+.cmd-step.idle { background: #e2e8f0; }
+
+/* ─── CATALOGUE ─── */
+.cat-layout { display: grid; grid-template-columns: 1fr 300px; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+.cat-grid { padding: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 560px; overflow-y: auto; }
+.prod-card { border: 1px solid var(--border); border-radius: 9px; overflow: hidden; cursor: pointer; transition: all .15s; background: var(--card); }
+.prod-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.prod-card.sel { border: 2px solid var(--accent); }
+.prod-thumb { width: 100%; aspect-ratio: 4/3; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
+.prod-thumb svg { width: 85%; height: auto; }
+.prod-info { padding: 8px 10px; }
+.prod-name { font-size: 12.5px; font-weight: 600; margin-bottom: 1px; }
+.prod-ref { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.prod-swatches { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 5px; }
+.sw { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--border); cursor: pointer; transition: transform .15s; }
+.sw:hover, .sw.act { transform: scale(1.3); border-color: var(--text); }
+.prod-price { font-size: 13px; font-weight: 600; color: var(--accent); }
+.cfg-panel { border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+.cfg-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 12px; text-align: center; padding: 20px; }
+.cfg-content { display: none; flex-direction: column; flex: 1; }
+.cfg-content.show { display: flex; }
+.cfg-preview { background: #f8fafc; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 160px; }
+.cfg-preview svg { width: 240px; height: auto; }
+.cfg-body { padding: 12px; flex: 1; overflow-y: auto; }
+.cfg-section { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 12px 0 7px; }
+.cfg-section:first-child { margin-top: 0; }
+.coloris-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.csw { width: 28px; height: 28px; border-radius: 7px; cursor: pointer; border: 2px solid transparent; transition: all .15s; position: relative; }
+.csw:hover, .csw.act { border-color: var(--text); transform: scale(1.1); }
+.csw .tip { display: none; position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; font-size: 10px; padding: 3px 7px; border-radius: 5px; white-space: nowrap; z-index: 20; pointer-events: none; }
+.csw:hover .tip { display: block; }
+.verres-g { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.vdot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all .15s; position: relative; }
+.vdot:hover, .vdot.act { border-color: var(--text); transform: scale(1.15); }
+.vdot .tip { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; font-size: 10px; padding: 3px 7px; border-radius: 5px; white-space: nowrap; z-index: 20; pointer-events: none; }
+.vdot:hover .tip { display: block; }
+.qty-row { display: flex; align-items: center; gap: 10px; }
+.qty-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border2); background: var(--bg); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); font-family: inherit; transition: background .15s; }
+.qty-btn:hover { background: var(--border); }
+.qty-val { font-size: 15px; font-weight: 600; min-width: 24px; text-align: center; }
+.cfg-footer { border-top: 1px solid var(--border); padding: 12px; }
+.cfg-total { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+.cfg-total-amt { font-size: 16px; font-weight: 700; color: var(--accent); }
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #f8fafc; }
+.fchip { padding: 4px 12px; border-radius: 20px; font-size: 11.5px; cursor: pointer; border: 1px solid var(--border2); background: var(--card); color: var(--muted); font-family: inherit; transition: all .15s; }
+.fchip:hover { background: var(--bg); }
+.fchip.act { background: var(--text); color: #fff; border-color: var(--text); }
+.panier-bar { background: var(--card); border-top: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.panier-items { font-size: 12px; color: var(--muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ─── STOCKS ─── */
+.stock-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.stock-row:last-child { border-bottom: none; }
+.stock-name { flex: 1; font-size: 12.5px; }
+.stock-bar-wrap { width: 90px; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.stock-bar { height: 100%; border-radius: 3px; }
+.stock-qty { font-size: 12px; color: var(--muted); min-width: 40px; text-align: right; font-family: 'DM Mono', monospace; }
+
+/* ─── MODAL ─── */
+.modal-wrap { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal-wrap.open { display: flex; }
+.modal { background: var(--card); border-radius: 14px; width: 440px; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.modal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.modal-title { font-size: 16px; font-weight: 600; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fgroup { margin-bottom: 12px; }
+.fgroup label { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
+.finput { width: 100%; padding: 8px 11px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border2); font-family: inherit; background: #f8fafc; color: var(--text); }
+.finput:focus { outline: none; border-color: var(--accent); background: #fff; }
+
+/* ─── NOTIF ─── */
+.notif { padding: 9px 16px; font-size: 12.5px; border-bottom: 1px solid var(--border); display: none; transition: all .3s; }
+.notif.show { display: flex; align-items: center; gap: 8px; }
+.notif.success { background: #f0fdf4; color: #166534; border-bottom-color: #bbf7d0; }
+.notif.warn { background: #fffbeb; color: #92400e; border-bottom-color: #fde68a; }
+.notif.info { background: #eff6ff; color: #1d4ed8; border-bottom-color: #bfdbfe; }
+.notif.purple { background: #f5f3ff; color: #6d28d9; border-bottom-color: #ddd6fe; }
+
+/* ─── RAPPORTS ─── */
+.perf-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.perf-name { font-size: 12.5px; width: 110px; flex-shrink: 0; }
+.perf-bar-bg { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.perf-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+.perf-pct { font-size: 12px; font-weight: 600; min-width: 36px; text-align: right; }
+
+/* ─── ÉQUIPE ─── */
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-online { background: #22c55e; }
+.dot-offline { background: #94a3b8; }
+
+/* ─── CHART BARS ─── */
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 110px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bar-fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); opacity: .8; min-height: 4px; transition: height .4s; cursor: pointer; }
+.bar-fill:hover { opacity: 1; }
+.bar-fill.target { background: #e2e8f0; opacity: 1; }
+.bar-lbl { font-size: 10px; color: var(--muted); }
+.bar-val { font-size: 10px; color: var(--muted); }
+
+/* ─── SCROLL ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ LOGIN ════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon"><i class="ti ti-eye"></i></div>
+      <h1>VendaPRO</h1>
+      <p>Gestion commerciale — Lunettes</p>
+    </div>
+    <div class="login-error" id="login-err"><i class="ti ti-alert-circle"></i> Email ou mot de passe incorrect.</div>
+    <div class="fgroup">
+      <label>Email</label>
+      <input class="finput" type="email" id="l-email" placeholder="votre@email.fr" value="admin@vendapro.fr">
+    </div>
+    <div class="fgroup">
+      <label>Mot de passe</label>
+      <input class="finput" type="password" id="l-pass" placeholder="••••••••" value="">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Se connecter</button>
+    <div class="login-hint">Démo : <b>admin@vendapro.fr</b> / <b>demo2026</b></div>
+  </div>
+</div>
+
+<!-- ════════════════════ APP ════════════════════ -->
+<div id="app">
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-sq"><i class="ti ti-eye" style="font-size:15px"></i></div>
+    <span>Venda<b>PRO</b></span>
+  </div>
+  <div class="nav-sec">Principal</div>
+  <div class="nav-item active" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Tableau de bord</div>
+  <div class="nav-item" onclick="nav('clients',this)"><i class="ti ti-users"></i>Clients</div>
+  <div class="nav-item" onclick="nav('pipeline',this)"><i class="ti ti-route"></i>Pipeline</div>
+  <div class="nav-item" onclick="nav('devis',this)"><i class="ti ti-file-invoice"></i>Devis & Factures</div>
+  <div class="nav-sec">Opérations</div>
+  <div class="nav-item" onclick="nav('commandes',this)">
+    <i class="ti ti-truck"></i>Commandes
+    <span class="badge-count" id="nb-cmd">3</span>
+  </div>
+  <div class="nav-item" onclick="nav('catalogue',this)"><i class="ti ti-eye-glasses"></i>Catalogue</div>
+  <div class="nav-item" onclick="nav('stocks',this)"><i class="ti ti-package"></i>Stocks</div>
+  <div class="nav-sec">Analyse</div>
+  <div class="nav-item" onclick="nav('rapports',this)"><i class="ti ti-chart-bar"></i>Rapports</div>
+  <div class="nav-item" onclick="nav('equipe',this)"><i class="ti ti-users-group"></i>Équipe</div>
+  <div class="sidebar-footer">
+    <div class="user-row" onclick="doLogout()">
+      <div class="avatar" style="background:#2563eb;color:#fff" id="user-av">ML</div>
+      <div><div class="uname" id="user-name">Marc Leclerc</div><div class="urole" id="user-role">Directeur commercial</div></div>
+      <i class="ti ti-logout" style="margin-left:auto;color:#475569;font-size:14px"></i>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Tableau de bord</div>
+    <div class="search-box"><i class="ti ti-search" style="color:var(--muted);font-size:14px"></i><input placeholder="Rechercher…" oninput="globalSearch(this.value)"></div>
+    <span class="badge b-online" style="font-size:11px"><i class="ti ti-circle-filled" style="font-size:8px"></i>En ligne</span>
+    <button class="btn btn-primary btn-sm" onclick="quickAction()"><i class="ti ti-plus"></i>Nouveau</button>
+  </div>
+  <div class="notif" id="notif"></div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">CA du mois <span class="trend-up">↑ 12%</span></div>
+          <div class="metric-val" style="color:var(--accent)">284 700 €</div>
+          <div class="metric-sub">Objectif : 300 000 €</div>
+          <div class="progress"><div class="progress-bar" style="width:94.9%;background:var(--accent)"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Devis en attente <span class="trend-up">+3</span></div>
+          <div class="metric-val" style="color:var(--warn)">18</div>
+          <div class="metric-sub">Valeur : 142 000 €</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Commandes livrées <span class="trend-up">↑ 8%</span></div>
+          <div class="metric-val" style="color:var(--accent2)">147</div>
+          <div class="metric-sub">Ce mois</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Alertes stock <span class="trend-dn">↑ 2</span></div>
+          <div class="metric-val" style="color:var(--danger)">5</div>
+          <div class="metric-sub">Produits en rupture</div>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">CA mensuel 2026</div><span class="badge b-blue">€</span></div>
+          <div class="card-body">
+            <div class="bar-chart" id="dash-chart"></div>
+            <div style="display:flex;gap:10px;margin-top:8px">
+              <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:10px;height:10px;background:var(--accent);border-radius:2px;opacity:.8"></div>CA réalisé</div>
+              <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:10px;height:10px;background:#e2e8f0;border-radius:2px"></div>Objectif</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Activité récente</div></div>
+          <div class="card-body">
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent2)"></div><div class="act-text">Devis <b>#DEV-2847</b> accepté — Carrefour France</div><div class="act-time">13h20</div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--warn)"></div><div class="act-text">Stock <b>Monture Aviateur</b> sous seuil minimum</div><div class="act-time">11h05</div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent)"></div><div class="act-text">Nouveau client <b>Optic Sud</b> ajouté</div><div class="act-time">10h30</div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--purple)"></div><div class="act-text">Commande <b>#CMD-2897</b> en préparation atelier</div><div class="act-time">9h45</div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--danger)"></div><div class="act-text">Commande <b>#CMD-2895</b> retardée</div><div class="act-time">Hier</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Top clients du mois</div></div>
+          <div style="padding:0">
+            <table class="tbl">
+              <thead><tr><th>Client</th><th>Secteur</th><th>CA</th><th>Statut</th></tr></thead>
+              <tbody>
+                <tr><td><b>Optic 2000 France</b></td><td>Optique</td><td>68 200 €</td><td><span class="badge b-green">VIP</span></td></tr>
+                <tr><td><b>Krys Group</b></td><td>Optique</td><td>42 700 €</td><td><span class="badge b-blue">Actif</span></td></tr>
+                <tr><td><b>Atol Les Opticiens</b></td><td>Optique</td><td>38 100 €</td><td><span class="badge b-blue">Actif</span></td></tr>
+                <tr><td><b>Générale d'Optique</b></td><td>Optique</td><td>29 500 €</td><td><span class="badge b-blue">Actif</span></td></tr>
+                <tr><td><b>Optic Sud</b></td><td>Indép.</td><td>8 900 €</td><td><span class="badge b-orange">Nouveau</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Alertes & tâches</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:#fffbeb;border-left:3px solid var(--warn);border-radius:6px;padding:9px 12px;font-size:12.5px;color:#92400e"><b>Relance</b> — Devis #DEV-2831 sans réponse depuis 7j</div>
+            <div style="background:#fef2f2;border-left:3px solid var(--danger);border-radius:6px;padding:9px 12px;font-size:12.5px;color:#991b1b"><b>Stock critique</b> — Monture Aviateur or : 12 unités</div>
+            <div style="background:#eff6ff;border-left:3px solid var(--accent);border-radius:6px;padding:9px 12px;font-size:12.5px;color:#1e40af"><b>Livraison prévue</b> — CMD-2899 demain matin</div>
+            <div style="background:#fffbeb;border-left:3px solid var(--warn);border-radius:6px;padding:9px 12px;font-size:12.5px;color:#92400e"><b>Facture impayée</b> — FAC-2197 échue depuis 12j</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLIENTS ── -->
+    <div class="page" id="page-clients">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-title">Base clients — 247 entreprises</div>
+          <button class="btn btn-primary btn-sm"><i class="ti ti-plus"></i>Nouveau client</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Entreprise</th><th>Secteur</th><th>Commercial</th><th>CA annuel</th><th>Dernier contact</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>Optic 2000 France</b></td><td>Optique chaîne</td><td>Marc L.</td><td>486 000 €</td><td>Aujourd'hui</td><td><span class="badge b-green">VIP</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Krys Group</b></td><td>Optique chaîne</td><td>Sophie D.</td><td>312 000 €</td><td>Il y a 2j</td><td><span class="badge b-blue">Actif</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Atol Les Opticiens</b></td><td>Optique chaîne</td><td>Thomas M.</td><td>298 500 €</td><td>Il y a 5j</td><td><span class="badge b-blue">Actif</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Générale d'Optique</b></td><td>Optique chaîne</td><td>Marc L.</td><td>198 000 €</td><td>Il y a 1j</td><td><span class="badge b-blue">Actif</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Optic Sud</b></td><td>Indépendant</td><td>Sophie D.</td><td>18 900 €</td><td>Aujourd'hui</td><td><span class="badge b-orange">Nouveau</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Vision Plus Nice</b></td><td>Indépendant</td><td>Thomas M.</td><td>167 000 €</td><td>Il y a 3j</td><td><span class="badge b-blue">Actif</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Luxottica Retail FR</b></td><td>Optique luxe</td><td>Marc L.</td><td>420 000 €</td><td>Il y a 1j</td><td><span class="badge b-green">VIP</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            <tr><td><b>Opticien Mutualiste</b></td><td>Mutuelle</td><td>Julie R.</td><td>142 000 €</td><td>Il y a 8j</td><td><span class="badge b-gray">Inactif</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PIPELINE ── -->
+    <div class="page" id="page-pipeline">
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+        <div class="metric"><div class="metric-label">Total pipeline</div><div class="metric-val" style="color:var(--accent)">342 500 €</div></div>
+        <div class="metric"><div class="metric-label">Taux conversion</div><div class="metric-val" style="color:var(--accent2)">34%</div></div>
+        <div class="metric"><div class="metric-label">Durée moyenne</div><div class="metric-val">18 j</div></div>
+        <div class="metric"><div class="metric-label">Affaires actives</div><div class="metric-val" style="color:var(--purple)">24</div></div>
+      </div>
+      <div class="pipeline-board">
+        <div class="pipe-col">
+          <div class="pipe-col-hdr"><span>Prospection</span><span class="badge b-gray">4</span></div>
+          <div class="deal-card"><div class="deal-name">Optic Bretagne</div><div class="deal-co">Contact initial</div><div class="deal-footer"><div class="deal-amt">28 000 €</div><div class="deal-pct">20%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Lunettes & Co</div><div class="deal-co">Prise de contact</div><div class="deal-footer"><div class="deal-amt">14 500 €</div><div class="deal-pct">25%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Optique Alsace</div><div class="deal-co">Présentation</div><div class="deal-footer"><div class="deal-amt">9 200 €</div><div class="deal-pct">15%</div></div></div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-col-hdr"><span>Qualification</span><span class="badge b-blue">5</span></div>
+          <div class="deal-card"><div class="deal-name">Krys Lyon Centre</div><div class="deal-co">RDV planifié</div><div class="deal-footer"><div class="deal-amt">52 000 €</div><div class="deal-pct">40%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Optic 2000 Nord</div><div class="deal-co">Besoin confirmé</div><div class="deal-footer"><div class="deal-amt">38 700 €</div><div class="deal-pct">45%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Vision Express</div><div class="deal-co">Analyse besoins</div><div class="deal-footer"><div class="deal-amt">22 100 €</div><div class="deal-pct">35%</div></div></div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-col-hdr"><span>Proposition</span><span class="badge b-orange">6</span></div>
+          <div class="deal-card"><div class="deal-name">Atol Marseille</div><div class="deal-co">Devis envoyé</div><div class="deal-footer"><div class="deal-amt">76 400 €</div><div class="deal-pct">65%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Grand Optical IDF</div><div class="deal-co">Négociation prix</div><div class="deal-footer"><div class="deal-amt">43 200 €</div><div class="deal-pct">60%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Optic Luxe Paris</div><div class="deal-co">Relance en cours</div><div class="deal-footer"><div class="deal-amt">18 900 €</div><div class="deal-pct">55%</div></div></div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-col-hdr"><span>Négociation</span><span class="badge b-purple">3</span></div>
+          <div class="deal-card" style="border-left:3px solid var(--accent2)"><div class="deal-name">Optic 2000 Sud-Est</div><div class="deal-co">Accord de principe</div><div class="deal-footer"><div class="deal-amt">94 000 €</div><div class="deal-pct">85%</div></div></div>
+          <div class="deal-card"><div class="deal-name">Générale Bordeaux</div><div class="deal-co">Signature imminente</div><div class="deal-footer"><div class="deal-amt">31 500 €</div><div class="deal-pct">90%</div></div></div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-col-hdr"><span>Gagné</span><span class="badge b-green">6</span></div>
+          <div class="deal-card won"><div class="deal-name">Optic 2000 France</div><div class="deal-co"><span class="badge b-green" style="font-size:10px">Signé</span></div><div class="deal-footer"><div class="deal-amt">68 200 €</div><div class="deal-pct">100%</div></div></div>
+          <div class="deal-card won"><div class="deal-name">Krys Group</div><div class="deal-co"><span class="badge b-green" style="font-size:10px">Signé</span></div><div class="deal-footer"><div class="deal-amt">42 700 €</div><div class="deal-pct">100%</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEVIS ── -->
+    <div class="page" id="page-devis">
+      <div class="card">
+        <div class="card-hdr"><div class="card-hdr-title">Devis récents</div><button class="btn btn-primary btn-sm" onclick="openModal('devis')"><i class="ti ti-plus"></i>Nouveau devis</button></div>
+        <table class="tbl">
+          <thead><tr><th>N° Devis</th><th>Client</th><th>Commercial</th><th>Montant HT</th><th>Date</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>#DEV-2851</b></td><td>Optic 2000</td><td>Marc L.</td><td>24 800 €</td><td>17/05/2026</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
+            <tr><td><b>#DEV-2850</b></td><td>Krys Group</td><td>Thomas M.</td><td>18 400 €</td><td>16/05/2026</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
+            <tr><td><b>#DEV-2849</b></td><td>Grand Optical</td><td>Sophie D.</td><td>43 200 €</td><td>15/05/2026</td><td><span class="badge b-blue">Envoyé</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
+            <tr><td><b>#DEV-2848</b></td><td>Atol Marseille</td><td>Marc L.</td><td>12 700 €</td><td>14/05/2026</td><td><span class="badge b-green">Accepté</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
+            <tr><td><b>#DEV-2847</b></td><td>Optic 2000</td><td>Marc L.</td><td>38 900 €</td><td>13/05/2026</td><td><span class="badge b-green">Accepté</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
+            <tr><td><b>#DEV-2846</b></td><td>Vision Plus Nice</td><td>Thomas M.</td><td>7 200 €</td><td>12/05/2026</td><td><span class="badge b-red">Refusé</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── COMMANDES ── -->
+    <div class="page" id="page-commandes">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="display:flex;gap:8px">
+          <span class="badge b-orange" id="b-att">3 en attente</span>
+          <span class="badge b-blue" id="b-crs">2 en cours</span>
+          <span class="badge b-purple" id="b-atl">1 atelier</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('commande')"><i class="ti ti-plus"></i>Créer une commande</button>
+      </div>
+      <div class="cmd-board">
+        <!-- COL 1: Attente -->
+        <div class="cmd-col">
+          <div class="cmd-col-hdr">
+            <div class="cmd-col-icon" style="background:#fff7ed"><i class="ti ti-clock" style="color:#c2410c"></i></div>
+            <div class="cmd-col-title">En attente de validation</div>
+            <div class="cmd-col-cnt" id="cnt-att">3</div>
+          </div>
+          <div class="cmd-col-body" id="col-att">
+            <div class="ocmd" id="cmd-2901">
+              <div class="ocmd-top">
+                <div class="ocmd-ref"><span>#CMD-2901</span><span class="badge b-orange">Nouvelle</span></div>
+                <div class="ocmd-client">Optic 2000 Lyon</div>
+                <div class="ocmd-items">Parisienne — 24 paires · Atlas aviateur — 12 paires</div>
+                <div class="ocmd-meta"><div class="ocmd-amt">8 640 €</div><span class="badge b-gray">Marc L.</span></div>
+              </div>
+              <div class="ocmd-footer">
+                <button class="btn btn-success btn-xs" onclick="valider('cmd-2901','Optic 2000 Lyon','8 640 €')"><i class="ti ti-check"></i>Valider</button>
+                <button class="btn btn-danger btn-xs" onclick="refuser('cmd-2901')"><i class="ti ti-x"></i>Refuser</button>
+                <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+              </div>
+            </div>
+            <div class="ocmd" id="cmd-2902">
+              <div class="ocmd-top">
+                <div class="ocmd-ref"><span>#CMD-2902</span><span class="badge b-orange">Nouvelle</span></div>
+                <div class="ocmd-client">Krys Bordeaux</div>
+                <div class="ocmd-items">Cercle rond — 36 paires · Milano rect. — 18 paires</div>
+                <div class="ocmd-meta"><div class="ocmd-amt">6 120 €</div><span class="badge b-gray">Sophie D.</span></div>
+              </div>
+              <div class="ocmd-footer">
+                <button class="btn btn-success btn-xs" onclick="valider('cmd-2902','Krys Bordeaux','6 120 €')"><i class="ti ti-check"></i>Valider</button>
+                <button class="btn btn-danger btn-xs" onclick="refuser('cmd-2902')"><i class="ti ti-x"></i>Refuser</button>
+                <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+              </div>
+            </div>
+            <div class="ocmd" id="cmd-2903">
+              <div class="ocmd-top">
+                <div class="ocmd-ref"><span>#CMD-2903</span><span class="badge b-orange">Nouvelle</span></div>
+                <div class="ocmd-client">Atol Nantes</div>
+                <div class="ocmd-items">Raptor sport — 48 paires</div>
+                <div class="ocmd-meta"><div class="ocmd-amt">5 760 €</div><span class="badge b-gray">Thomas M.</span></div>
+              </div>
+              <div class="ocmd-footer">
+                <button class="btn btn-success btn-xs" onclick="valider('cmd-2903','Atol Nantes','5 760 €')"><i class="ti ti-check"></i>Valider</button>
+                <button class="btn btn-danger btn-xs" onclick="refuser('cmd-2903')"><i class="ti ti-x"></i>Refuser</button>
+                <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- COL 2: En cours -->
+        <div class="cmd-col">
+          <div class="cmd-col-hdr">
+            <div class="cmd-col-icon" style="background:#eff6ff"><i class="ti ti-loader" style="color:#1d4ed8"></i></div>
+            <div class="cmd-col-title">Commandes en cours</div>
+            <div class="cmd-col-cnt" id="cnt-crs">2</div>
+          </div>
+          <div class="cmd-col-body" id="col-crs">
+            <div class="ocmd validated" id="cmd-2899">
+              <div class="ocmd-top">
+                <div class="ocmd-ref"><span>#CMD-2899</span><span class="badge b-blue">Validée</span></div>
+                <div class="ocmd-client">Générale d'Optique</div>
+                <div class="ocmd-items">Atlas aviateur or — 60 paires</div>
+                <div class="ocmd-meta"><div class="ocmd-amt">22 400 €</div><span class="badge b-gray">Validée 16/05</span></div>
+                <div class="cmd-steps"><div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step active"></div><div class="cmd-step idle"></div></div>
+              </div>
+              <div class="ocmd-footer">
+                <button class="btn btn-purple btn-sm" onclick="envoyerAtelier('cmd-2899','Générale d\'Optique')"><i class="ti ti-tool"></i>Envoyer à l'atelier</button>
+                <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+              </div>
+            </div>
+            <div class="ocmd validated" id="cmd-2898">
+              <div class="ocmd-top">
+                <div class="ocmd-ref"><span>#CMD-2898</span><span class="badge b-blue">Validée</span></div>
+                <div class="ocmd-client">Vision Plus Nice</div>
+                <div class="ocmd-items">Parisienne cat-eye — 30 paires · Hexa — 18 paires</div>
+                <div class="ocmd-meta"><div class="ocmd-amt">11 800 €</div><span class="badge b-gray">Validée 15/05</span></div>
+                <div class="cmd-steps"><div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step active"></div><div class="cmd-step idle"></div></div>
+              </div>
+              <div class="ocmd-footer">
+                <button class="btn btn-purple btn-sm" onclick="envoyerAtelier('cmd-2898','Vision Plus Nice')"><i class="ti ti-tool"></i>Envoyer à l'atelier</button>
+                <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- COL 3: Atelier -->
+        <div class="cmd-col">
+          <div class="cmd-col-hdr">
+            <div class="cmd-col-icon" style="background:#f5f3ff"><i class="ti ti-tool" style="color:#6d28d9"></i></div>
+            <div class="cmd-col-title">En préparation atelier</div>
+            <div class="cmd-col-cnt" id="cnt-atl">1</div>
+          </div>
+          <div class="cmd-col-body" id="col-atl">
+            <div class="ocmd atelier" id="cmd-2897">
+              <div class="ocmd-top">
+                <div class="ocmd-ref"><span>#CMD-2897</span><span class="badge b-purple">Atelier</span></div>
+                <div class="ocmd-client">Optic 2000 Est</div>
+                <div class="ocmd-items">Milano rect. + verres gris polarisés — 48 paires</div>
+                <div class="ocmd-meta"><div class="ocmd-amt">18 900 €</div><span class="badge b-gray">Atelier 17/05 10h30</span></div>
+                <div class="cmd-steps"><div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step active"></div></div>
+              </div>
+              <div class="atelier-row"><div class="pulse"></div><span>Préparation en cours — Opérateur : Kevin R.</span></div>
+              <div class="ocmd-footer atelier-bg">
+                <button class="btn btn-success btn-xs" onclick="expedier('cmd-2897','Optic 2000 Est')"><i class="ti ti-truck"></i>Marquer expédiée</button>
+                <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CATALOGUE ── -->
+    <div class="page" id="page-catalogue">
+      <div class="cat-layout">
+        <div>
+          <div class="filter-row" id="filter-row">
+            <span style="font-size:12px;color:var(--muted);align-self:center">Forme :</span>
+            <button class="fchip act" onclick="setForme(this,'')">Tous</button>
+            <button class="fchip" onclick="setForme(this,'Aviateur')">Aviateur</button>
+            <button class="fchip" onclick="setForme(this,'Rectangulaire')">Rectangulaire</button>
+            <button class="fchip" onclick="setForme(this,'Rond')">Rond</button>
+            <button class="fchip" onclick="setForme(this,'Cat-eye')">Cat-eye</button>
+            <button class="fchip" onclick="setForme(this,'Sport')">Sport</button>
+            <button class="fchip" onclick="setForme(this,'Hexagonal')">Hexagonal</button>
+          </div>
+          <div class="cat-grid" id="cat-grid"></div>
+        </div>
+        <div class="cfg-panel">
+          <div class="cfg-empty" id="cfg-empty"><i class="ti ti-eye-off" style="font-size:32px;color:var(--border2)"></i><div>Sélectionnez un modèle</div></div>
+          <div class="cfg-content" id="cfg-content">
+            <div class="cfg-preview"><svg id="cfg-svg" viewBox="0 0 280 110" style="width:240px"></svg></div>
+            <div class="cfg-body">
+              <div style="margin-bottom:10px">
+                <div style="font-size:15px;font-weight:700" id="cfg-name">—</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px" id="cfg-ref">—</div>
+                <div style="margin-top:4px;display:flex;gap:6px" id="cfg-tags"></div>
+              </div>
+              <div class="cfg-section">Coloris monture</div>
+              <div class="coloris-row" id="cfg-coloris"></div>
+              <div class="cfg-section">Teinte des verres — <span style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0" id="verre-name">Aucune sélection</span></div>
+              <div class="verres-g" id="cfg-verres"></div>
+              <div class="cfg-section">Quantité</div>
+              <div class="qty-row">
+                <button class="qty-btn" onclick="changeQty(-1)">−</button>
+                <div class="qty-val" id="cfg-qty">1</div>
+                <button class="qty-btn" onclick="changeQty(1)">+</button>
+                <span style="font-size:12px;color:var(--muted)">paires</span>
+              </div>
+            </div>
+            <div class="cfg-footer">
+              <div class="cfg-total"><span style="color:var(--muted)">Prix unitaire</span><span id="cfg-pu">—</span></div>
+              <div class="cfg-total"><span style="font-weight:600">Total</span><span class="cfg-total-amt" id="cfg-total">—</span></div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="ajouterPanier()"><i class="ti ti-shopping-cart"></i>Ajouter à la commande</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panier-bar">
+        <div class="panier-items" id="panier-items">Panier vide</div>
+        <div style="font-size:14px;font-weight:700;color:var(--accent)" id="panier-total"></div>
+        <button class="btn btn-sm" onclick="voirPanier()"><i class="ti ti-shopping-cart"></i>Panier <span id="panier-cnt"></span></button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('commande')"><i class="ti ti-send"></i>Créer commande</button>
+      </div>
+    </div>
+
+    <!-- ── STOCKS ── -->
+    <div class="page" id="page-stocks">
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Références actives</div><div class="metric-val">648</div></div>
+        <div class="metric"><div class="metric-label">Valeur du stock <span class="trend-up">↑ 3%</span></div><div class="metric-val" style="color:var(--accent2)">284 000 €</div></div>
+        <div class="metric"><div class="metric-label">Alertes rupture</div><div class="metric-val" style="color:var(--danger)">5</div></div>
+        <div class="metric"><div class="metric-label">Taux de rotation</div><div class="metric-val">6.2</div></div>
+      </div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Niveaux critiques</div><span class="badge b-red">5 alertes</span></div>
+          <div class="card-body">
+            <div class="stock-row"><div class="stock-name">Monture Aviateur — Or</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:12%;background:var(--danger)"></div></div><div class="stock-qty" style="color:var(--danger)">12 u.</div></div>
+            <div class="stock-row"><div class="stock-name">Monture Cat-eye — Bordeaux</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:20%;background:var(--warn)"></div></div><div class="stock-qty" style="color:var(--warn)">28 u.</div></div>
+            <div class="stock-row"><div class="stock-name">Verre gris polarisé</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:25%;background:var(--warn)"></div></div><div class="stock-qty" style="color:var(--warn)">41 u.</div></div>
+            <div class="stock-row"><div class="stock-name">Monture Sport — Bleu</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:42%;background:var(--accent2)"></div></div><div class="stock-qty">86 u.</div></div>
+            <div class="stock-row"><div class="stock-name">Monture Ronde — Écaille</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:68%;background:var(--accent2)"></div></div><div class="stock-qty">204 u.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Mouvements du jour</div></div>
+          <table class="tbl">
+            <thead><tr><th>Produit</th><th>Type</th><th>Qté</th></tr></thead>
+            <tbody>
+              <tr><td>Aviateur or</td><td><span class="badge b-red" style="font-size:10px">Sortie</span></td><td style="color:var(--danger);font-family:'DM Mono',monospace">−24</td></tr>
+              <tr><td>Verre bleu miroir</td><td><span class="badge b-green" style="font-size:10px">Entrée</span></td><td style="color:var(--accent2);font-family:'DM Mono',monospace">+120</td></tr>
+              <tr><td>Cat-eye bordeaux</td><td><span class="badge b-red" style="font-size:10px">Sortie</span></td><td style="color:var(--danger);font-family:'DM Mono',monospace">−12</td></tr>
+              <tr><td>Sport TR90 noir</td><td><span class="badge b-green" style="font-size:10px">Entrée</span></td><td style="color:var(--accent2);font-family:'DM Mono',monospace">+60</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RAPPORTS ── -->
+    <div class="page" id="page-rapports">
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">CA YTD <span class="trend-up">↑ 18%</span></div><div class="metric-val" style="color:var(--accent)">1 284 700 €</div><div class="metric-sub">vs 1 087 000 € N-1</div></div>
+        <div class="metric"><div class="metric-label">Marge brute</div><div class="metric-val" style="color:var(--accent2)">31.4%</div></div>
+        <div class="metric"><div class="metric-label">Clients actifs</div><div class="metric-val">183</div></div>
+        <div class="metric"><div class="metric-label">Panier moyen</div><div class="metric-val">6 420 €</div></div>
+      </div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Performance commerciaux</div></div>
+          <div class="card-body">
+            <div class="perf-bar-wrap">
+              <div class="perf-name" style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:var(--accent);color:#fff">ML</div>Marc L.</div>
+              <div class="perf-bar-bg"><div class="perf-bar-fill" style="width:104%"></div></div>
+              <div class="perf-pct" style="color:var(--accent2)">104%</div>
+            </div>
+            <div class="perf-bar-wrap">
+              <div class="perf-name" style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:var(--purple);color:#fff">SD</div>Sophie D.</div>
+              <div class="perf-bar-bg"><div class="perf-bar-fill" style="width:94%"></div></div>
+              <div class="perf-pct" style="color:var(--warn)">94%</div>
+            </div>
+            <div class="perf-bar-wrap">
+              <div class="perf-name" style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:var(--accent2);color:#fff">TM</div>Thomas M.</div>
+              <div class="perf-bar-bg"><div class="perf-bar-fill" style="width:87%"></div></div>
+              <div class="perf-pct" style="color:var(--danger)">87%</div>
+            </div>
+            <div class="perf-bar-wrap">
+              <div class="perf-name" style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:var(--warn);color:#fff">JR</div>Julie R.</div>
+              <div class="perf-bar-bg"><div class="perf-bar-fill" style="width:96%"></div></div>
+              <div class="perf-pct" style="color:var(--warn)">96%</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Répartition CA par gamme</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>Montures premium</span><span>42%</span></div><div class="progress"><div class="progress-bar" style="width:42%;background:var(--accent)"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>Montures standard</span><span>31%</span></div><div class="progress"><div class="progress-bar" style="width:31%;background:var(--purple)"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>Verres & options</span><span>18%</span></div><div class="progress"><div class="progress-bar" style="width:18%;background:var(--accent2)"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>Accessoires</span><span>9%</span></div><div class="progress"><div class="progress-bar" style="width:9%;background:var(--warn)"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EQUIPE ── -->
+    <div class="page" id="page-equipe">
+      <div class="card">
+        <div class="card-hdr"><div class="card-hdr-title">Commerciaux — accès CRM</div><button class="btn btn-primary btn-sm"><i class="ti ti-user-plus"></i>Inviter</button></div>
+        <table class="tbl">
+          <thead><tr><th>Nom</th><th>Rôle</th><th>Email</th><th>Statut</th><th>Dernière connexion</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="status-dot dot-online"></div><div class="avatar" style="width:26px;height:26px;font-size:10px;background:var(--accent);color:#fff">ML</div><b>Marc Leclerc</b></div></td><td>Dir. commercial</td><td>m.leclerc@vendapro.fr</td><td><span class="badge b-online">En ligne</span></td><td>Maintenant</td><td><span class="tbl-action">Modifier</span></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="status-dot dot-online"></div><div class="avatar" style="width:26px;height:26px;font-size:10px;background:var(--purple);color:#fff">SD</div><b>Sophie Dubois</b></div></td><td>Commercial terrain</td><td>s.dubois@vendapro.fr</td><td><span class="badge b-online">En ligne</span></td><td>Il y a 3 min</td><td><span class="tbl-action">Modifier</span></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="status-dot dot-offline"></div><div class="avatar" style="width:26px;height:26px;font-size:10px;background:var(--accent2);color:#fff">TM</div><b>Thomas Martin</b></div></td><td>Commercial séd.</td><td>t.martin@vendapro.fr</td><td><span class="badge b-gray">Hors ligne</span></td><td>Hier 18h30</td><td><span class="tbl-action">Modifier</span></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="status-dot dot-online"></div><div class="avatar" style="width:26px;height:26px;font-size:10px;background:var(--warn);color:#fff">JR</div><b>Julie Renaud</b></div></td><td>Commercial terrain</td><td>j.renaud@vendapro.fr</td><td><span class="badge b-online">En ligne</span></td><td>Il y a 8 min</td><td><span class="tbl-action">Modifier</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- ── MODAL ── -->
+<div class="modal-wrap" id="modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modal-title">Nouvelle commande</div>
+      <button class="btn btn-xs" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ USERS ═══════════════ */
+const USERS = [
+  { email:'admin@vendapro.fr', pass:'demo2026', name:'Marc Leclerc', role:'Directeur commercial', av:'ML', col:'#2563eb' },
+  { email:'sophie@vendapro.fr', pass:'demo2026', name:'Sophie Dubois', role:'Commercial terrain', av:'SD', col:'#7c3aed' },
+  { email:'thomas@vendapro.fr', pass:'demo2026', name:'Thomas Martin', role:'Commercial sédentaire', av:'TM', col:'#059669' },
+  { email:'julie@vendapro.fr', pass:'demo2026', name:'Julie Renaud', role:'Commercial terrain', av:'JR', col:'#d97706' },
+];
+
+let currentUser = null;
+
+function doLogin(){
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  const user = USERS.find(u => u.email === email && u.pass === pass);
+  if(!user){ document.getElementById('login-err').style.display='flex'; return; }
+  currentUser = user;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-av').textContent = user.av;
+  document.getElementById('user-av').style.background = user.col;
+  document.getElementById('user-name').textContent = user.name;
+  document.getElementById('user-role').textContent = user.role;
+  document.getElementById('l-pass').value='';
+  renderDashChart();
+  renderCatalogue();
+}
+
+document.getElementById('l-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('l-email').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-err').style.display='none';
+}
+
+/* ═══════════════ NAV ═══════════════ */
+const PAGE_TITLES = { dashboard:'Tableau de bord', clients:'Clients & Prospects', pipeline:'Pipeline Commercial', devis:'Devis & Factures', commandes:'Commandes', catalogue:'Catalogue Lunettes', stocks:'Stocks & Produits', rapports:'Rapports & Analyses', equipe:'Mon Équipe' };
+
+function nav(page, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
+}
+
+function globalSearch(v){ showNotif('Recherche : "'+v+'"','info'); }
+function quickAction(){ openModal('commande'); }
+
+/* ═══════════════ NOTIF ═══════════════ */
+let notifTimer;
+function showNotif(msg, type='info'){
+  const n = document.getElementById('notif');
+  n.className = 'notif show ' + type;
+  n.innerHTML = '<i class="ti ti-info-circle" style="font-size:15px;flex-shrink:0"></i> '+msg;
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(()=>{ n.classList.remove('show'); }, 4500);
+}
+
+/* ═══════════════ DASHBOARD CHART ═══════════════ */
+function renderDashChart(){
+  const months = ['Jan','Fév','Mar','Avr','Mai','Juin'];
+  const data = [198,224,241,268,285,300];
+  const goal = [220,235,250,270,300,300];
+  const max = 320;
+  const c = document.getElementById('dash-chart');
+  c.innerHTML = months.map((m,i)=>{
+    const h = Math.round((data[i]/max)*100);
+    const gh = Math.round((goal[i]/max)*100);
+    const isNow = i===4;
+    return `<div class="bar-col">
+      <div class="bar-val">${i<5?data[i]+'k':''}</div>
+      <div style="position:relative;width:100%;height:${gh}px;display:flex;align-items:flex-end">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:${gh}px;background:#e2e8f0;border-radius:4px 4px 0 0"></div>
+        <div style="position:relative;width:100%;height:${h}px;background:${isNow?'#2563eb':'#93c5fd'};border-radius:4px 4px 0 0;opacity:${isNow?1:.75}"></div>
+      </div>
+      <div class="bar-lbl">${m}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════ COMMANDES ═══════════════ */
+let cmdCounts = {att:3, crs:2, atl:1};
+let cmdCounter = 2904;
+
+function updateCmdBadges(){
+  document.getElementById('cnt-att').textContent = cmdCounts.att;
+  document.getElementById('cnt-crs').textContent = cmdCounts.crs;
+  document.getElementById('cnt-atl').textContent = cmdCounts.atl;
+  document.getElementById('b-att').textContent = cmdCounts.att+' en attente';
+  document.getElementById('b-crs').textContent = cmdCounts.crs+' en cours';
+  document.getElementById('b-atl').textContent = cmdCounts.atl+' atelier';
+  document.getElementById('nb-cmd').textContent = cmdCounts.att;
+}
+
+function valider(id, client, montant){
+  const card = document.getElementById(id);
+  if(!card) return;
+  card.querySelector('.badge').className='badge b-blue';
+  card.querySelector('.badge').textContent='Validée';
+  card.classList.add('validated');
+  const oldFooter = card.querySelector('.ocmd-footer');
+  oldFooter.innerHTML=`<button class="btn btn-purple btn-sm" onclick="envoyerAtelier('${id}','${client}')"><i class="ti ti-tool"></i>Envoyer à l'atelier</button><button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>`;
+  const steps = document.createElement('div'); steps.className='cmd-steps';
+  steps.innerHTML='<div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step active"></div><div class="cmd-step idle"></div>';
+  card.querySelector('.ocmd-top').appendChild(steps);
+  document.getElementById('col-crs').appendChild(card);
+  cmdCounts.att--; cmdCounts.crs++;
+  updateCmdBadges();
+  showNotif('✓ Commande '+id.replace('cmd-','#CMD-')+' validée — '+client+' ('+montant+')','success');
+}
+
+function refuser(id){
+  const card = document.getElementById(id);
+  if(!card) return;
+  card.style.opacity='.4'; card.style.pointerEvents='none';
+  card.querySelector('.badge').className='badge b-red';
+  card.querySelector('.badge').textContent='Refusée';
+  setTimeout(()=>{ card.remove(); cmdCounts.att--; updateCmdBadges(); }, 1200);
+  showNotif('Commande '+id.replace('cmd-','#CMD-')+' refusée.','warn');
+}
+
+function envoyerAtelier(id, client){
+  const card = document.getElementById(id);
+  if(!card) return;
+  card.querySelector('.badge').className='badge b-purple';
+  card.querySelector('.badge').textContent='Atelier';
+  card.classList.remove('validated'); card.classList.add('atelier');
+  const steps = card.querySelector('.cmd-steps');
+  if(steps) steps.innerHTML='<div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step done"></div><div class="cmd-step active"></div>';
+  const footer = card.querySelector('.ocmd-footer');
+  footer.classList.add('atelier-bg');
+  footer.innerHTML=`<button class="btn btn-success btn-xs" onclick="expedier('${id}','${client}')"><i class="ti ti-truck"></i>Marquer expédiée</button><button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>`;
+  const ar = document.createElement('div'); ar.className='atelier-row';
+  ar.innerHTML='<div class="pulse"></div><span>Préparation en cours</span>';
+  footer.parentNode.insertBefore(ar, footer);
+  document.getElementById('col-atl').appendChild(card);
+  cmdCounts.crs--; cmdCounts.atl++;
+  updateCmdBadges();
+  showNotif('Commande envoyée à l\'atelier — '+client,'purple');
+}
+
+function expedier(id, client){
+  const card = document.getElementById(id);
+  if(!card) return;
+  card.querySelector('.badge').className='badge b-green';
+  card.querySelector('.badge').textContent='Expédiée';
+  card.style.opacity='.5'; card.style.pointerEvents='none';
+  setTimeout(()=>{ card.remove(); cmdCounts.atl--; updateCmdBadges(); },1500);
+  showNotif('Commande expédiée avec succès — '+client,'success');
+}
+
+/* ═══════════════ CATALOGUE ═══════════════ */
+const COLORIS = [
+  {n:'Noir mat',c:'#1a1a1a'},{n:'Noir brillant',c:'#050505'},{n:'Écaille brun',c:'#8B5E3C'},
+  {n:'Écaille miel',c:'#C68642'},{n:'Havane',c:'#D4A55B'},{n:'Or',c:'#D4AF37'},
+  {n:'Argent',c:'#A8A9AD'},{n:'Rose gold',c:'#B76E79'},{n:'Bleu nuit',c:'#1B2A4A'},
+  {n:'Vert forêt',c:'#2D5A27'},{n:'Bordeaux',c:'#6B1A2A'},{n:'Translucide',c:'rgba(180,200,230,0.6)'},
+  {n:'Blanc ivoire',c:'#F5F0E8'},{n:'Gris acier',c:'#6B7280'},{n:'Cuivre',c:'#B87333'},{n:'Violet',c:'#5B2C6F'}
+];
+const VERRES = [
+  {n:'Transparent',c:'rgba(220,235,255,0.3)'},{n:'Gris clair',c:'rgba(100,110,120,0.3)'},{n:'Gris foncé',c:'rgba(50,55,60,0.65)'},{n:'Gris polarisé',c:'rgba(40,45,50,0.8)'},
+  {n:'Brun clair',c:'rgba(140,90,40,0.3)'},{n:'Brun moyen',c:'rgba(100,60,20,0.5)'},{n:'Brun foncé',c:'rgba(70,35,10,0.72)'},{n:'Brun polarisé',c:'rgba(60,30,5,0.85)'},
+  {n:'Bleu océan',c:'rgba(20,80,160,0.45)'},{n:'Bleu glacier',c:'rgba(100,170,220,0.45)'},{n:'Bleu nuit',c:'rgba(10,30,90,0.72)'},{n:'Bleu miroir',c:'rgba(50,130,200,0.6)'},
+  {n:'Vert nature',c:'rgba(30,100,40,0.45)'},{n:'Vert émeraude',c:'rgba(0,120,80,0.55)'},{n:'Vert olive',c:'rgba(80,90,20,0.5)'},{n:'Vert flash',c:'rgba(60,180,50,0.5)'},
+  {n:'Rose poudré',c:'rgba(210,130,140,0.4)'},{n:'Rose vif',c:'rgba(220,60,100,0.5)'},{n:'Mauve',c:'rgba(140,70,160,0.45)'},{n:'Violet profond',c:'rgba(80,20,120,0.65)'},
+  {n:'Jaune soleil',c:'rgba(240,200,30,0.45)'},{n:'Jaune doré',c:'rgba(200,160,20,0.5)'},{n:'Orange vif',c:'rgba(230,100,20,0.5)'},{n:'Orange sunset',c:'rgba(210,70,0,0.55)'},
+  {n:'Rouge feu',c:'rgba(190,20,20,0.5)'},{n:'Rouge rosé',c:'rgba(200,50,70,0.4)'},{n:'Miroir argent',c:'rgba(180,190,200,0.65)'},{n:'Miroir or',c:'rgba(200,170,60,0.65)'},
+  {n:'Miroir cuivre',c:'rgba(180,100,40,0.65)'},{n:'Miroir bleu',c:'rgba(30,100,190,0.65)'},{n:'Miroir vert',c:'rgba(20,140,70,0.65)'},{n:'Miroir rose',c:'rgba(200,80,120,0.65)'},
+  {n:'Dégradé gris',c:'rgba(80,85,90,0.5)'},{n:'Dégradé brun',c:'rgba(110,60,20,0.5)'},{n:'Dégradé bleu',c:'rgba(40,100,180,0.5)'},{n:'Dégradé vert',c:'rgba(30,120,50,0.5)'},
+  {n:'Photochromique',c:'rgba(90,80,70,0.5)'},{n:'Anti-UV total',c:'rgba(240,245,255,0.15)'},{n:'Teinte légère',c:'rgba(120,140,160,0.18)'},{n:'Sans teinte',c:'rgba(230,240,255,0.1)'}
+];
+const MODELS = [
+  {id:1,name:'Parisienne',ref:'LUN-001',forme:'Cat-eye',matiere:'Acétate',prix:89,coloris:[0,7,10,11,3]},
+  {id:2,name:'Atlas',ref:'LUN-008',forme:'Aviateur',matiere:'Métal',prix:115,coloris:[1,5,6,8,14]},
+  {id:3,name:'Cercle',ref:'LUN-015',forme:'Rond',matiere:'Acétate',prix:79,coloris:[2,3,9,10,11,15]},
+  {id:4,name:'Milano',ref:'LUN-022',forme:'Rectangulaire',matiere:'Acétate',prix:95,coloris:[0,1,2,4,7,13]},
+  {id:5,name:'Raptor',ref:'LUN-031',forme:'Sport',matiere:'TR90',prix:129,coloris:[0,8,9,12,1]},
+  {id:6,name:'Hexa',ref:'LUN-038',forme:'Hexagonal',matiere:'Métal',prix:105,coloris:[0,5,6,14,15]},
+  {id:7,name:'Riviera',ref:'LUN-045',forme:'Aviateur',matiere:'Métal',prix:135,coloris:[6,7,14,5,0]},
+  {id:8,name:'Osaka',ref:'LUN-052',forme:'Rectangulaire',matiere:'Titane',prix:199,coloris:[5,6,13,0]},
+  {id:9,name:'Belle',ref:'LUN-059',forme:'Cat-eye',matiere:'Acétate',prix:85,coloris:[7,10,15,3,11]},
+  {id:10,name:'Nomade',ref:'LUN-066',forme:'Rond',matiere:'Acétate',prix:69,coloris:[2,3,4,9,10,11]},
+  {id:11,name:'Turbo',ref:'LUN-073',forme:'Sport',matiere:'TR90',prix:119,coloris:[1,8,9,0]},
+  {id:12,name:'Géo',ref:'LUN-080',forme:'Hexagonal',matiere:'Acétate',prix:98,coloris:[2,10,15,0,7]},
+];
+let catState = { filter:'', sel:null, monture:0, verre:-1, qty:1, panier:[] };
+
+function drawGlasses(svgEl, fc, lc, shape){
+  const sw=1.6;
+  let html='';
+  if(shape==='Aviateur'){
+    html=`<path d="M28,44 Q28,20 54,20 Q80,20 80,44 Q80,64 54,64 Q28,64 28,44Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M200,44 Q200,20 226,20 Q252,20 252,44 Q252,64 226,64 Q200,64 200,44Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M80,38 Q140,48 200,38" fill="none" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="28" y1="40" x2="6" y2="54" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>
+    <line x1="252" y1="40" x2="274" y2="54" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  } else if(shape==='Rond'){
+    html=`<circle cx="72" cy="47" r="33" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <circle cx="208" cy="47" r="33" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M105,47 Q140,40 175,47" fill="none" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="39" y1="35" x2="8" y2="50" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>
+    <line x1="241" y1="35" x2="272" y2="50" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  } else if(shape==='Cat-eye'){
+    html=`<path d="M24,54 Q28,22 68,18 Q90,16 94,40 Q94,64 68,67 Q38,67 24,54Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M256,54 Q252,22 212,18 Q190,16 186,40 Q186,64 212,67 Q242,67 256,54Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M94,42 Q140,50 186,42" fill="none" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="24" y1="48" x2="5" y2="60" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>
+    <line x1="256" y1="48" x2="275" y2="60" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  } else if(shape==='Sport'){
+    html=`<path d="M18,34 Q20,14 74,14 Q100,14 102,34 Q104,57 74,59 Q34,59 18,34Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M262,34 Q260,14 206,14 Q180,14 178,34 Q176,57 206,59 Q246,59 262,34Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M102,30 Q140,20 178,30" fill="none" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="18" y1="30" x2="3" y2="44" stroke="${fc}" stroke-width="${sw+0.4}" stroke-linecap="round"/>
+    <line x1="262" y1="30" x2="277" y2="44" stroke="${fc}" stroke-width="${sw+0.4}" stroke-linecap="round"/>`;
+  } else if(shape==='Hexagonal'){
+    html=`<path d="M32,54 L38,27 L64,17 L90,27 L90,54 L64,67Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <path d="M248,54 L242,27 L216,17 L190,27 L190,54 L216,67Z" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="90" y1="41" x2="190" y2="41" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="32" y1="41" x2="7" y2="54" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>
+    <line x1="248" y1="41" x2="273" y2="54" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  } else {
+    html=`<rect x="20" y="22" width="90" height="54" rx="10" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <rect x="170" y="22" width="90" height="54" rx="10" fill="${lc}" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="110" y1="44" x2="170" y2="44" stroke="${fc}" stroke-width="${sw}"/>
+    <line x1="20" y1="40" x2="4" y2="54" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>
+    <line x1="260" y1="40" x2="276" y2="54" stroke="${fc}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  }
+  svgEl.innerHTML = html;
+}
+
+function setForme(el, f){
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('act'));
+  el.classList.add('act');
+  catState.filter = f;
+  renderCatalogue();
+}
+
+function renderCatalogue(){
+  const filtered = MODELS.filter(m => !catState.filter || m.forme===catState.filter);
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = filtered.map(m => {
+    const fc = COLORIS[m.coloris[0]].c;
+    const isSel = catState.sel?.id===m.id;
+    return `<div class="prod-card${isSel?' sel':''}" id="pc-${m.id}" onclick="selectModel(${m.id})">
+      <div class="prod-thumb"><svg viewBox="0 0 280 90" id="thumb-${m.id}" style="width:88%"></svg></div>
+      <div class="prod-info">
+        <div class="prod-name">${m.name}</div>
+        <div class="prod-ref">${m.ref} · ${m.forme}</div>
+        <div class="prod-swatches">${m.coloris.map((ci,i)=>`<div class="sw${isSel&&i===0?' act':''}" style="background:${COLORIS[ci].c}" title="${COLORIS[ci].n}"></div>`).join('')}</div>
+        <div class="prod-price">${m.prix} €</div>
+      </div>
+    </div>`;
+  }).join('');
+  filtered.forEach(m=>{
+    const el=document.getElementById('thumb-'+m.id);
+    if(el) drawGlasses(el, COLORIS[m.coloris[0]].c, 'rgba(180,210,240,0.35)', m.forme);
+  });
+  renderCfgPanel();
+}
+
+function selectModel(id){
+  catState.sel = MODELS.find(m=>m.id===id);
+  catState.monture=0; catState.verre=-1; catState.qty=1;
+  renderCatalogue();
+}
+
+function renderCfgPanel(){
+  const m=catState.sel;
+  document.getElementById('cfg-empty').style.display = m?'none':'flex';
+  const cc=document.getElementById('cfg-content');
+  if(!m){cc.classList.remove('show');return;}
+  cc.classList.add('show');
+  document.getElementById('cfg-name').textContent=m.name;
+  document.getElementById('cfg-ref').textContent=m.ref;
+  document.getElementById('cfg-tags').innerHTML=`<span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 8px;font-size:11px">${m.forme}</span><span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 8px;font-size:11px">${m.matiere}</span>`;
+  const fc=COLORIS[m.coloris[catState.monture]].c;
+  const lc=catState.verre>=0?VERRES[catState.verre].c:'rgba(180,210,240,0.35)';
+  drawGlasses(document.getElementById('cfg-svg'), fc, lc, m.forme);
+  document.getElementById('cfg-coloris').innerHTML=m.coloris.map((ci,i)=>`<div class="csw${i===catState.monture?' act':''}" style="background:${COLORIS[ci].c}" onclick="setMonture(${i})"><div class="tip">${COLORIS[ci].n}</div></div>`).join('');
+  document.getElementById('cfg-verres').innerHTML=VERRES.map((v,i)=>`<div class="vdot${i===catState.verre?' act':''}" style="background:${v.c};border-color:${i===catState.verre?'#0f172a':'rgba(0,0,0,0.15)'}" onclick="setVerre(${i})"><div class="tip">${v.n}</div></div>`).join('');
+  document.getElementById('verre-name').textContent=catState.verre>=0?VERRES[catState.verre].n:'Aucune sélection';
+  document.getElementById('cfg-qty').textContent=catState.qty;
+  document.getElementById('cfg-pu').textContent=m.prix+' €';
+  document.getElementById('cfg-total').textContent=(m.prix*catState.qty).toLocaleString('fr-FR')+' €';
+}
+
+function setMonture(i){ catState.monture=i; renderCfgPanel(); }
+function setVerre(i){ catState.verre=catState.verre===i?-1:i; renderCfgPanel(); }
+function changeQty(d){ catState.qty=Math.max(1,catState.qty+d); renderCfgPanel(); }
+
+function ajouterPanier(){
+  const m=catState.sel; if(!m) return;
+  const key=m.id+'_'+catState.monture+'_'+catState.verre;
+  const ex=catState.panier.find(p=>p.key===key);
+  if(ex) ex.qty+=catState.qty;
+  else catState.panier.push({key,name:m.name,monture:COLORIS[m.coloris[catState.monture]].n,verre:catState.verre>=0?VERRES[catState.verre].n:'Sans teinte',prix:m.prix,qty:catState.qty});
+  updatePanier();
+  showNotif(catState.qty+'× '+m.name+' ajouté au panier','success');
+}
+
+function updatePanier(){
+  const total=catState.panier.reduce((s,p)=>s+p.prix*p.qty,0);
+  const qty=catState.panier.reduce((s,p)=>s+p.qty,0);
+  document.getElementById('panier-items').textContent=catState.panier.length?catState.panier.map(p=>p.qty+'× '+p.name+' ('+p.monture+', '+p.verre+')').join(' · '):'Panier vide';
+  document.getElementById('panier-total').textContent=total?total.toLocaleString('fr-FR')+' €':'';
+  document.getElementById('panier-cnt').textContent=qty?'('+qty+')':'';
+}
+
+function voirPanier(){
+  if(!catState.panier.length){showNotif('Panier vide','warn');return;}
+  const lines=catState.panier.map(p=>`• ${p.qty}× ${p.name} — ${p.monture} / ${p.verre} = ${(p.prix*p.qty).toLocaleString('fr-FR')} €`).join('\n');
+  const total=catState.panier.reduce((s,p)=>s+p.prix*p.qty,0);
+  alert('Récapitulatif panier :\n\n'+lines+'\n\nTOTAL : '+total.toLocaleString('fr-FR')+' €');
+}
+
+/* ═══════════════ MODAL ═══════════════ */
+function openModal(type){
+  document.getElementById('modal').classList.add('open');
+  if(type==='commande'){
+    document.getElementById('modal-title').textContent='Créer une commande';
+    document.getElementById('modal-body').innerHTML=`
+      <div class="form-row">
+        <div class="fgroup"><label>Client</label>
+          <select class="finput"><option>Choisir un client…</option><option>Optic 2000 France</option><option>Krys Group</option><option>Atol Les Opticiens</option><option>Vision Plus Nice</option><option>Optic Sud</option></select>
+        </div>
+        <div class="fgroup"><label>Commercial</label>
+          <select class="finput"><option>Marc Leclerc</option><option>Sophie Dubois</option><option>Thomas Martin</option><option>Julie Renaud</option></select>
+        </div>
+      </div>
+      <div class="fgroup"><label>Produits</label>
+        <select class="finput"><option>Parisienne cat-eye — 89 €/paire</option><option>Atlas aviateur — 115 €/paire</option><option>Milano rectangulaire — 95 €/paire</option><option>Raptor sport — 129 €/paire</option></select>
+      </div>
+      <div class="form-row">
+        <div class="fgroup"><label>Quantité</label><input class="finput" type="number" value="12" min="1"></div>
+        <div class="fgroup"><label>Livraison souhaitée</label><input class="finput" type="date" value="2026-05-30"></div>
+      </div>
+      <div class="fgroup"><label>Note pour l'atelier</label><input class="finput" placeholder="Instructions de préparation, priorité…"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="submitCommande()"><i class="ti ti-send"></i>Soumettre pour validation</button>
+      </div>`;
+  } else if(type==='devis'){
+    document.getElementById('modal-title').textContent='Nouveau devis';
+    document.getElementById('modal-body').innerHTML=`
+      <div class="form-row">
+        <div class="fgroup"><label>Client</label><select class="finput"><option>Optic 2000 France</option><option>Krys Group</option><option>Atol Les Opticiens</option></select></div>
+        <div class="fgroup"><label>Échéance</label><input class="finput" type="date" value="2026-06-15"></div>
+      </div>
+      <div class="fgroup"><label>Produits</label><select class="finput"><option>Parisienne — 89 €</option><option>Atlas — 115 €</option><option>Milano — 95 €</option></select></div>
+      <div class="fgroup"><label>Remise (%)</label><input class="finput" type="number" value="5" min="0" max="50"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="closeModal();showNotif('Devis créé avec succès','success')"><i class="ti ti-check"></i>Créer le devis</button>
+      </div>`;
+  }
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
+
+let newCmdN = 2904;
+function submitCommande(){
+  closeModal();
+  const ref='CMD-'+newCmdN++;
+  const col=document.getElementById('col-att');
+  const card=document.createElement('div');
+  card.className='ocmd'; card.id=ref.toLowerCase().replace('-','-').replace('cmd','cmd');
+  const id=ref.toLowerCase().replace('cmd-','cmd-');
+  card.id=id;
+  card.innerHTML=`<div class="ocmd-top">
+    <div class="ocmd-ref"><span>#${ref}</span><span class="badge b-orange">Nouvelle</span></div>
+    <div class="ocmd-client">Nouvelle commande</div>
+    <div class="ocmd-items">Commande soumise par ${currentUser?.name||'Commercial'}</div>
+    <div class="ocmd-meta"><div class="ocmd-amt">À confirmer</div><span class="badge b-gray">Soumis maintenant</span></div>
+  </div>
+  <div class="ocmd-footer">
+    <button class="btn btn-success btn-xs" onclick="valider('${id}','Nouvelle commande','—')"><i class="ti ti-check"></i>Valider</button>
+    <button class="btn btn-danger btn-xs" onclick="refuser('${id}')"><i class="ti ti-x"></i>Refuser</button>
+    <button class="btn btn-xs"><i class="ti ti-eye"></i>Détail</button>
+  </div>`;
+  col.prepend(card);
+  cmdCounts.att++; updateCmdBadges();
+  nav('commandes', document.querySelector('.nav-item[onclick*="commandes"]'));
+  showNotif('Commande #'+ref+' soumise — en attente de validation','info');
+}
+</script>
+</body>
+</html>
