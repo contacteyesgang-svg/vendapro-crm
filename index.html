@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -549,19 +550,132 @@ body { font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--bg
 
     <!-- ── DEVIS ── -->
     <div class="page" id="page-devis">
-      <div class="card">
-        <div class="card-hdr"><div class="card-hdr-title">Devis récents</div><button class="btn btn-primary btn-sm" onclick="openModal('devis')"><i class="ti ti-plus"></i>Nouveau devis</button></div>
-        <table class="tbl">
-          <thead><tr><th>N° Devis</th><th>Client</th><th>Commercial</th><th>Montant HT</th><th>Date</th><th>Statut</th><th></th></tr></thead>
-          <tbody>
-            <tr><td><b>#DEV-2851</b></td><td>Optic 2000</td><td>Marc L.</td><td>24 800 €</td><td>17/05/2026</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
-            <tr><td><b>#DEV-2850</b></td><td>Krys Group</td><td>Thomas M.</td><td>18 400 €</td><td>16/05/2026</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
-            <tr><td><b>#DEV-2849</b></td><td>Grand Optical</td><td>Sophie D.</td><td>43 200 €</td><td>15/05/2026</td><td><span class="badge b-blue">Envoyé</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
-            <tr><td><b>#DEV-2848</b></td><td>Atol Marseille</td><td>Marc L.</td><td>12 700 €</td><td>14/05/2026</td><td><span class="badge b-green">Accepté</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
-            <tr><td><b>#DEV-2847</b></td><td>Optic 2000</td><td>Marc L.</td><td>38 900 €</td><td>13/05/2026</td><td><span class="badge b-green">Accepté</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
-            <tr><td><b>#DEV-2846</b></td><td>Vision Plus Nice</td><td>Thomas M.</td><td>7 200 €</td><td>12/05/2026</td><td><span class="badge b-red">Refusé</span></td><td><span class="tbl-action">Gérer →</span></td></tr>
-          </tbody>
-        </table>
+
+      <!-- VUE LISTE -->
+      <div id="devis-liste">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">
+            <div class="card-hdr-title">Devis récents</div>
+            <button class="btn btn-primary btn-sm" onclick="showDevisCreateur()"><i class="ti ti-plus"></i>Nouveau devis</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>N° Devis</th><th>Client</th><th>Commercial</th><th>Produits</th><th>Montant HT</th><th>Date</th><th>Statut</th><th></th></tr></thead>
+            <tbody id="devis-tbody">
+              <tr><td><b>#DEV-2851</b></td><td>Optic 2000</td><td>Marc L.</td><td>Parisienne x24, Atlas x12</td><td>24 800 €</td><td>17/05/2026</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+              <tr><td><b>#DEV-2850</b></td><td>Krys Group</td><td>Thomas M.</td><td>Milano x36</td><td>18 400 €</td><td>16/05/2026</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+              <tr><td><b>#DEV-2849</b></td><td>Grand Optical</td><td>Sophie D.</td><td>Raptor x48, Hexa x24</td><td>43 200 €</td><td>15/05/2026</td><td><span class="badge b-blue">Envoyé</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+              <tr><td><b>#DEV-2848</b></td><td>Atol Marseille</td><td>Marc L.</td><td>Cercle x18</td><td>12 700 €</td><td>14/05/2026</td><td><span class="badge b-green">Accepté</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+              <tr><td><b>#DEV-2847</b></td><td>Optic 2000</td><td>Marc L.</td><td>Atlas x60</td><td>38 900 €</td><td>13/05/2026</td><td><span class="badge b-green">Accepté</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+              <tr><td><b>#DEV-2846</b></td><td>Vision Plus Nice</td><td>Thomas M.</td><td>Parisienne x12</td><td>7 200 €</td><td>12/05/2026</td><td><span class="badge b-red">Refusé</span></td><td><span class="tbl-action">Voir →</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VUE CRÉATEUR DE DEVIS -->
+      <div id="devis-createur" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <button class="btn btn-sm" onclick="hideDevisCreateur()"><i class="ti ti-arrow-left"></i>Retour</button>
+          <div style="font-size:15px;font-weight:600">Nouveau devis — Configurateur produits</div>
+        </div>
+
+        <!-- Infos devis -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+              <div class="fgroup" style="margin:0"><label>Client</label>
+                <select class="finput" id="dv-client">
+                  <option value="">Choisir un client…</option>
+                  <option>Optic 2000 France</option><option>Krys Group</option>
+                  <option>Atol Les Opticiens</option><option>Vision Plus Nice</option>
+                  <option>Générale d'Optique</option><option>Optic Sud</option>
+                </select>
+              </div>
+              <div class="fgroup" style="margin:0"><label>Échéance</label>
+                <input class="finput" type="date" id="dv-echeance" value="2026-06-15">
+              </div>
+              <div class="fgroup" style="margin:0"><label>Remise globale (%)</label>
+                <input class="finput" type="number" id="dv-remise" value="0" min="0" max="50" oninput="dvUpdateTotal()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configurateur produit -->
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:12px;margin-bottom:12px">
+
+          <!-- Catalogue -->
+          <div class="card">
+            <div class="card-hdr">
+              <div class="card-hdr-title">Choisir un modèle</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <button class="fchip act" onclick="dvSetForme(this,'')">Tous</button>
+                <button class="fchip" onclick="dvSetForme(this,'Optique')">Optique</button>
+                <button class="fchip" onclick="dvSetForme(this,'Solaire')">Solaire</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;max-height:420px;overflow-y:auto" id="dv-grid"></div>
+          </div>
+
+          <!-- Config panneau droit -->
+          <div class="card" style="display:flex;flex-direction:column">
+            <div id="dv-cfg-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:12px;text-align:center;padding:20px">
+              <i class="ti ti-eye-off" style="font-size:32px;color:var(--border2)"></i>
+              <div>Cliquez sur un modèle<br>pour le configurer</div>
+            </div>
+            <div id="dv-cfg-content" style="display:none;flex-direction:column;flex:1">
+              <div style="background:#f8fafc;padding:14px;display:flex;align-items:center;justify-content:center;min-height:150px">
+                <svg id="dv-svg" viewBox="0 0 280 110" style="width:220px"></svg>
+              </div>
+              <div style="padding:12px;flex:1;overflow-y:auto">
+                <div style="font-size:14px;font-weight:700;margin-bottom:2px" id="dv-nom">—</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:8px" id="dv-ref">—</div>
+
+                <div class="cfg-section">Coloris monture</div>
+                <div class="coloris-row" id="dv-coloris"></div>
+
+                <div class="cfg-section">Teinte des verres
+                  <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px" id="dv-verre-nom"> — Aucune</span>
+                </div>
+                <div class="verres-g" id="dv-verres"></div>
+
+                <div class="cfg-section">Quantité</div>
+                <div class="qty-row">
+                  <button class="qty-btn" onclick="dvChangeQty(-1)">−</button>
+                  <div class="qty-val" id="dv-qty">1</div>
+                  <button class="qty-btn" onclick="dvChangeQty(1)">+</button>
+                  <span style="font-size:12px;color:var(--muted)">paires</span>
+                </div>
+                <div style="margin-top:10px;font-size:13px;color:var(--muted)">Prix unitaire : <b id="dv-pu" style="color:var(--text)">—</b></div>
+              </div>
+              <div style="padding:10px 12px;border-top:1px solid var(--border)">
+                <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="dvAjouter()">
+                  <i class="ti ti-plus"></i>Ajouter au devis
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Récap devis -->
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-hdr-title">Récapitulatif du devis</div>
+            <div style="font-size:12px;color:var(--muted)" id="dv-nb-lignes">0 ligne(s)</div>
+          </div>
+          <table class="tbl" id="dv-recap-tbl">
+            <thead><tr><th>Modèle</th><th>Monture</th><th>Verre</th><th>Qté</th><th>P.U.</th><th>Total</th><th></th></tr></thead>
+            <tbody id="dv-recap-body">
+              <tr id="dv-empty-row"><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Aucun produit ajouté</td></tr>
+            </tbody>
+          </table>
+          <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;gap:20px">
+            <div style="font-size:13px;color:var(--muted)">Total HT : <b id="dv-total-ht" style="color:var(--text)">0 €</b></div>
+            <div style="font-size:13px;color:var(--muted)">Remise : <b id="dv-total-remise" style="color:var(--danger)">0 €</b></div>
+            <div style="font-size:15px;font-weight:700;color:var(--accent)">Net HT : <span id="dv-total-net">0 €</span></div>
+            <button class="btn btn-primary" onclick="dvGenerer()"><i class="ti ti-file-invoice"></i>Générer le devis</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -695,12 +809,8 @@ body { font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--bg
           <div class="filter-row" id="filter-row">
             <span style="font-size:12px;color:var(--muted);align-self:center">Forme :</span>
             <button class="fchip act" onclick="setForme(this,'')">Tous</button>
-            <button class="fchip" onclick="setForme(this,'Aviateur')">Aviateur</button>
-            <button class="fchip" onclick="setForme(this,'Rectangulaire')">Rectangulaire</button>
-            <button class="fchip" onclick="setForme(this,'Rond')">Rond</button>
-            <button class="fchip" onclick="setForme(this,'Cat-eye')">Cat-eye</button>
-            <button class="fchip" onclick="setForme(this,'Sport')">Sport</button>
-            <button class="fchip" onclick="setForme(this,'Hexagonal')">Hexagonal</button>
+            <button class="fchip" onclick="setForme(this,'Optique')">Optique</button>
+            <button class="fchip" onclick="setForme(this,'Solaire')">Solaire</button>
           </div>
           <div class="cat-grid" id="cat-grid"></div>
         </div>
@@ -1029,18 +1139,57 @@ const VERRES = [
   {n:'Photochromique',c:'rgba(90,80,70,0.5)'},{n:'Anti-UV total',c:'rgba(240,245,255,0.15)'},{n:'Teinte légère',c:'rgba(120,140,160,0.18)'},{n:'Sans teinte',c:'rgba(230,240,255,0.1)'}
 ];
 const MODELS = [
-  {id:1,name:'Parisienne',ref:'LUN-001',forme:'Cat-eye',matiere:'Acétate',prix:89,coloris:[0,7,10,11,3]},
-  {id:2,name:'Atlas',ref:'LUN-008',forme:'Aviateur',matiere:'Métal',prix:115,coloris:[1,5,6,8,14]},
-  {id:3,name:'Cercle',ref:'LUN-015',forme:'Rond',matiere:'Acétate',prix:79,coloris:[2,3,9,10,11,15]},
-  {id:4,name:'Milano',ref:'LUN-022',forme:'Rectangulaire',matiere:'Acétate',prix:95,coloris:[0,1,2,4,7,13]},
-  {id:5,name:'Raptor',ref:'LUN-031',forme:'Sport',matiere:'TR90',prix:129,coloris:[0,8,9,12,1]},
-  {id:6,name:'Hexa',ref:'LUN-038',forme:'Hexagonal',matiere:'Métal',prix:105,coloris:[0,5,6,14,15]},
-  {id:7,name:'Riviera',ref:'LUN-045',forme:'Aviateur',matiere:'Métal',prix:135,coloris:[6,7,14,5,0]},
-  {id:8,name:'Osaka',ref:'LUN-052',forme:'Rectangulaire',matiere:'Titane',prix:199,coloris:[5,6,13,0]},
-  {id:9,name:'Belle',ref:'LUN-059',forme:'Cat-eye',matiere:'Acétate',prix:85,coloris:[7,10,15,3,11]},
-  {id:10,name:'Nomade',ref:'LUN-066',forme:'Rond',matiere:'Acétate',prix:69,coloris:[2,3,4,9,10,11]},
-  {id:11,name:'Turbo',ref:'LUN-073',forme:'Sport',matiere:'TR90',prix:119,coloris:[1,8,9,0]},
-  {id:12,name:'Géo',ref:'LUN-080',forme:'Hexagonal',matiere:'Acétate',prix:98,coloris:[2,10,15,0,7]},
+  {id:1, name:'KAZUKI', ref:'PAW-KAZ', forme:'Optique', matiere:'Acétate', prix:59,
+    photos:[
+      {coloris:'Ghost', url:'https://static.wixstatic.com/media/5da6e1_f0e84b8f6e08480abd093d41866ab681~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_f0e84b8f6e08480abd093d41866ab681~mv2.jpg'},
+      {coloris:'Topaz', url:'https://static.wixstatic.com/media/5da6e1_30b25e7a2ea54a159f2a64e7fd49b871~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_30b25e7a2ea54a159f2a64e7fd49b871~mv2.jpg'},
+      {coloris:'Black Pump', url:'https://static.wixstatic.com/media/5da6e1_2c1033425ace4e6594efee0110659657~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_2c1033425ace4e6594efee0110659657~mv2.jpg'},
+    ]},
+  {id:2, name:'SAKURA', ref:'PAW-SAK', forme:'Optique', matiere:'Acétate', prix:49,
+    photos:[
+      {coloris:'Crystal Green', url:'https://static.wixstatic.com/media/5da6e1_49c418d9dee14d6aa600c56ad747c843~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_49c418d9dee14d6aa600c56ad747c843~mv2.jpg'},
+      {coloris:'Tortoise', url:'https://static.wixstatic.com/media/5da6e1_d0dd7f217af349899176c2315c5635ef~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_d0dd7f217af349899176c2315c5635ef~mv2.jpg'},
+      {coloris:'Black Pump', url:'https://static.wixstatic.com/media/5da6e1_b8cbf81bb8bd442a9c5da317e2825a0d~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_b8cbf81bb8bd442a9c5da317e2825a0d~mv2.jpg'},
+    ]},
+  {id:3, name:'KOORI', ref:'PAW-KOO', forme:'Optique', matiere:'Acétate', prix:49,
+    photos:[
+      {coloris:'Tortoise', url:'https://static.wixstatic.com/media/5da6e1_a60e632935234c95a004fbd0ec53ac50~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_a60e632935234c95a004fbd0ec53ac50~mv2.jpg'},
+      {coloris:'Storm', url:'https://static.wixstatic.com/media/5da6e1_67d0fa7dbb06489da9486c6e59136391~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_67d0fa7dbb06489da9486c6e59136391~mv2.jpg'},
+      {coloris:'Off White', url:'https://static.wixstatic.com/media/5da6e1_cbaca92519e046c18a0fdad8df084921~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_cbaca92519e046c18a0fdad8df084921~mv2.jpg'},
+      {coloris:'Black Pump', url:'https://static.wixstatic.com/media/5da6e1_be0ec3ec60744b858f9e23c53bb55259~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_be0ec3ec60744b858f9e23c53bb55259~mv2.jpg'},
+    ]},
+  {id:4, name:'SHIBUYA WIDE', ref:'PAW-SHI', forme:'Optique', matiere:'Acétate', prix:59,
+    photos:[
+      {coloris:'Tortoise', url:'https://static.wixstatic.com/media/5da6e1_844a9a2b61534e36aef3eac5b9e1f052~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_844a9a2b61534e36aef3eac5b9e1f052~mv2.jpg'},
+      {coloris:'Black Pump', url:'https://static.wixstatic.com/media/5da6e1_62ac5741ddaf44cd96b41ad33b58d79b~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_62ac5741ddaf44cd96b41ad33b58d79b~mv2.jpg'},
+      {coloris:'Ghost', url:'https://static.wixstatic.com/media/5da6e1_daf190157b6a4621afc72003f0554236~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_daf190157b6a4621afc72003f0554236~mv2.jpg'},
+      {coloris:'Off White', url:'https://static.wixstatic.com/media/5da6e1_1aa854de80f648f291eb2a93f6efac23~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_1aa854de80f648f291eb2a93f6efac23~mv2.jpg'},
+      {coloris:'Khaki', url:'https://static.wixstatic.com/media/5da6e1_ce35dd70b1c24c3e8f76e275dc6016a8~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_ce35dd70b1c24c3e8f76e275dc6016a8~mv2.jpg'},
+      {coloris:'Storm', url:'https://static.wixstatic.com/media/5da6e1_0e59600eca2c4647881eb41eab8d652d~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_0e59600eca2c4647881eb41eab8d652d~mv2.jpg'},
+    ]},
+  {id:5, name:'AKI', ref:'PAW-AKI', forme:'Optique', matiere:'Acétate', prix:49,
+    photos:[
+      {coloris:'Tortoise', url:'https://static.wixstatic.com/media/5da6e1_25c44914c53b4fa1a5f2ed13beb33cda~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_25c44914c53b4fa1a5f2ed13beb33cda~mv2.jpg'},
+      {coloris:'Terra Khaki', url:'https://static.wixstatic.com/media/5da6e1_668fc164c1e04ad2aebd92252e4ba04c~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_668fc164c1e04ad2aebd92252e4ba04c~mv2.jpg'},
+      {coloris:'Storm', url:'https://static.wixstatic.com/media/5da6e1_346f629f45414692838cc2ce1e033ec2~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_346f629f45414692838cc2ce1e033ec2~mv2.jpg'},
+      {coloris:'Crystal Coffee', url:'https://static.wixstatic.com/media/5da6e1_5375b77e129a40089b4e1d7c716a4a9e~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_5375b77e129a40089b4e1d7c716a4a9e~mv2.jpg'},
+    ]},
+  {id:6, name:'KAZE', ref:'PAW-KAZ2', forme:'Optique', matiere:'Acétate', prix:55,
+    photos:[
+      {coloris:'Tortoise', url:'https://static.wixstatic.com/media/5da6e1_072c39fc39b643fea4ba9ba403e0f149~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_072c39fc39b643fea4ba9ba403e0f149~mv2.jpg'},
+      {coloris:'Crystal Green', url:'https://static.wixstatic.com/media/5da6e1_bfebec8027d140629ccccb9a22dd237b~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_bfebec8027d140629ccccb9a22dd237b~mv2.jpg'},
+      {coloris:'Black Pump', url:'https://static.wixstatic.com/media/5da6e1_a22505044c7644a3aa217aaa97b42f5f~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_a22505044c7644a3aa217aaa97b42f5f~mv2.jpg'},
+    ]},
+  {id:7, name:'KUMO', ref:'PAW-KUM', forme:'Solaire', matiere:'Acétate', prix:55,
+    photos:[
+      {coloris:'Tortoise', url:'https://static.wixstatic.com/media/5da6e1_af8516d85c6243318945cb5d3366acd8~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_af8516d85c6243318945cb5d3366acd8~mv2.jpg'},
+      {coloris:'Khaki', url:'https://static.wixstatic.com/media/5da6e1_1f48c936630943c4b1a828f5b0148f6d~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_1f48c936630943c4b1a828f5b0148f6d~mv2.jpg'},
+      {coloris:'Black Pump', url:'https://static.wixstatic.com/media/5da6e1_f8d8b105fe3d4072a5baf189c068ccac~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_f8d8b105fe3d4072a5baf189c068ccac~mv2.jpg'},
+    ]},
+  {id:8, name:'NAO', ref:'PAW-NAO', forme:'Optique', matiere:'Acétate', prix:49,
+    photos:[
+      {coloris:'Ghost', url:'https://static.wixstatic.com/media/5da6e1_3d1b30a088254f35a4c4cfdd2f48d02e~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_3d1b30a088254f35a4c4cfdd2f48d02e~mv2.jpg'},
+    ]},
 ];
 let catState = { filter:'', sel:null, monture:0, verre:-1, qty:1, panier:[] };
 
@@ -1098,22 +1247,24 @@ function renderCatalogue(){
   const filtered = MODELS.filter(m => !catState.filter || m.forme===catState.filter);
   const grid = document.getElementById('cat-grid');
   grid.innerHTML = filtered.map(m => {
-    const fc = COLORIS[m.coloris[0]].c;
     const isSel = catState.sel?.id===m.id;
+    const selIdx = isSel ? catState.monture : 0;
+    const photo = m.photos[selIdx];
     return `<div class="prod-card${isSel?' sel':''}" id="pc-${m.id}" onclick="selectModel(${m.id})">
-      <div class="prod-thumb"><svg viewBox="0 0 280 90" id="thumb-${m.id}" style="width:88%"></svg></div>
+      <div class="prod-thumb" style="background:#f0f0f0;overflow:hidden;aspect-ratio:4/3">
+        <img src="${photo.url}" alt="${m.name}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+      </div>
       <div class="prod-info">
         <div class="prod-name">${m.name}</div>
-        <div class="prod-ref">${m.ref} · ${m.forme}</div>
-        <div class="prod-swatches">${m.coloris.map((ci,i)=>`<div class="sw${isSel&&i===0?' act':''}" style="background:${COLORIS[ci].c}" title="${COLORIS[ci].n}"></div>`).join('')}</div>
-        <div class="prod-price">${m.prix} €</div>
+        <div class="prod-ref">${m.ref} · ${photo.coloris}</div>
+        <div class="prod-swatches">${m.photos.map((p,i)=>`<div class="sw${isSel&&i===selIdx?' act':''}" style="width:13px;height:13px;border-radius:3px;overflow:hidden;padding:0;border:1.5px solid ${isSel&&i===selIdx?'#0f172a':'#ccc'}" title="${p.coloris}" onclick="event.stopPropagation();selectModelColoris(${m.id},${i})"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="prod-price">${m.prix} € HT</div>
+          <span style="font-size:10px;color:var(--muted)">${m.photos.length} coloris</span>
+        </div>
       </div>
     </div>`;
   }).join('');
-  filtered.forEach(m=>{
-    const el=document.getElementById('thumb-'+m.id);
-    if(el) drawGlasses(el, COLORIS[m.coloris[0]].c, 'rgba(180,210,240,0.35)', m.forme);
-  });
   renderCfgPanel();
 }
 
@@ -1123,38 +1274,56 @@ function selectModel(id){
   renderCatalogue();
 }
 
+function selectModelColoris(id, idx){
+  catState.sel = MODELS.find(m=>m.id===id);
+  catState.monture=idx; catState.verre=-1; catState.qty=1;
+  renderCatalogue();
+}
+
 function renderCfgPanel(){
   const m=catState.sel;
   document.getElementById('cfg-empty').style.display = m?'none':'flex';
   const cc=document.getElementById('cfg-content');
   if(!m){cc.classList.remove('show');return;}
   cc.classList.add('show');
+  const photo = m.photos[catState.monture];
   document.getElementById('cfg-name').textContent=m.name;
-  document.getElementById('cfg-ref').textContent=m.ref;
+  document.getElementById('cfg-ref').textContent=m.ref+' — '+photo.coloris;
   document.getElementById('cfg-tags').innerHTML=`<span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 8px;font-size:11px">${m.forme}</span><span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 8px;font-size:11px">${m.matiere}</span>`;
-  const fc=COLORIS[m.coloris[catState.monture]].c;
-  const lc=catState.verre>=0?VERRES[catState.verre].c:'rgba(180,210,240,0.35)';
-  drawGlasses(document.getElementById('cfg-svg'), fc, lc, m.forme);
-  document.getElementById('cfg-coloris').innerHTML=m.coloris.map((ci,i)=>`<div class="csw${i===catState.monture?' act':''}" style="background:${COLORIS[ci].c}" onclick="setMonture(${i})"><div class="tip">${COLORIS[ci].n}</div></div>`).join('');
-  document.getElementById('cfg-verres').innerHTML=VERRES.map((v,i)=>`<div class="vdot${i===catState.verre?' act':''}" style="background:${v.c};border-color:${i===catState.verre?'#0f172a':'rgba(0,0,0,0.15)'}" onclick="setVerre(${i})"><div class="tip">${v.n}</div></div>`).join('');
+  const lc=catState.verre>=0?VERRES[catState.verre].c:null;
+  const cfgPreview=document.querySelector('.cfg-preview');
+  cfgPreview.innerHTML=`<div style="position:relative;width:100%;max-width:240px;border-radius:10px;overflow:hidden">
+    <img src="${photo.url}" alt="${m.name}" style="width:100%;display:block;border-radius:10px">
+    ${lc?`<div style="position:absolute;inset:0;background:${lc};mix-blend-mode:color;pointer-events:none;border-radius:10px"></div>`:''}
+  </div>`;
+  document.getElementById('cfg-coloris').innerHTML=m.photos.map((p,i)=>
+    `<div class="csw${i===catState.monture?' act':''}" onclick="setMonture(${i})" style="overflow:hidden;padding:0;border-radius:6px;width:34px;height:34px;border:2px solid ${i===catState.monture?'#0f172a':'transparent'}">
+      <img src="${p.url}" alt="${p.coloris}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+      <div class="tip">${p.coloris}</div>
+    </div>`
+  ).join('');
+  document.getElementById('cfg-verres').innerHTML=VERRES.map((v,i)=>
+    `<div class="vdot${i===catState.verre?' act':''}" style="background:${v.c};border-color:${i===catState.verre?'#0f172a':'rgba(0,0,0,0.15)'}" onclick="setVerre(${i})"><div class="tip">${v.n}</div></div>`
+  ).join('');
   document.getElementById('verre-name').textContent=catState.verre>=0?VERRES[catState.verre].n:'Aucune sélection';
   document.getElementById('cfg-qty').textContent=catState.qty;
   document.getElementById('cfg-pu').textContent=m.prix+' €';
   document.getElementById('cfg-total').textContent=(m.prix*catState.qty).toLocaleString('fr-FR')+' €';
 }
 
-function setMonture(i){ catState.monture=i; renderCfgPanel(); }
+function setMonture(i){ catState.monture=i; renderCatalogue(); }
 function setVerre(i){ catState.verre=catState.verre===i?-1:i; renderCfgPanel(); }
 function changeQty(d){ catState.qty=Math.max(1,catState.qty+d); renderCfgPanel(); }
 
 function ajouterPanier(){
   const m=catState.sel; if(!m) return;
+  const photo=m.photos[catState.monture];
   const key=m.id+'_'+catState.monture+'_'+catState.verre;
   const ex=catState.panier.find(p=>p.key===key);
   if(ex) ex.qty+=catState.qty;
-  else catState.panier.push({key,name:m.name,monture:COLORIS[m.coloris[catState.monture]].n,verre:catState.verre>=0?VERRES[catState.verre].n:'Sans teinte',prix:m.prix,qty:catState.qty});
+  else catState.panier.push({key,name:m.name,monture:photo.coloris,imgUrl:photo.url,verre:catState.verre>=0?VERRES[catState.verre].n:'Sans teinte',prix:m.prix,qty:catState.qty});
   updatePanier();
-  showNotif(catState.qty+'× '+m.name+' ajouté au panier','success');
+  showNotif(catState.qty+'× '+m.name+' ('+photo.coloris+') ajouté au panier','success');
 }
 
 function updatePanier(){
@@ -1170,6 +1339,170 @@ function voirPanier(){
   const lines=catState.panier.map(p=>`• ${p.qty}× ${p.name} — ${p.monture} / ${p.verre} = ${(p.prix*p.qty).toLocaleString('fr-FR')} €`).join('\n');
   const total=catState.panier.reduce((s,p)=>s+p.prix*p.qty,0);
   alert('Récapitulatif panier :\n\n'+lines+'\n\nTOTAL : '+total.toLocaleString('fr-FR')+' €');
+}
+
+/* ═══════════════ DEVIS CRÉATEUR ═══════════════ */
+let dvState = { filter:'', sel:null, monture:0, verre:-1, qty:1, lignes:[] };
+let dvCounter = 2852;
+
+function showDevisCreateur(){
+  document.getElementById('devis-liste').style.display='none';
+  document.getElementById('devis-createur').style.display='block';
+  document.getElementById('page-title').textContent='Nouveau devis';
+  dvRenderGrid();
+}
+function hideDevisCreateur(){
+  document.getElementById('devis-liste').style.display='block';
+  document.getElementById('devis-createur').style.display='none';
+  document.getElementById('page-title').textContent='Devis & Factures';
+  dvState={filter:'',sel:null,monture:0,verre:-1,qty:1,lignes:[]};
+  dvRenderRecap();
+}
+
+function dvSetForme(el,f){
+  document.querySelectorAll('#devis-createur .fchip').forEach(c=>c.classList.remove('act'));
+  el.classList.add('act');
+  dvState.filter=f;
+  dvRenderGrid();
+}
+
+function dvRenderGrid(){
+  const filtered=MODELS.filter(m=>!dvState.filter||m.forme===dvState.filter);
+  const grid=document.getElementById('dv-grid');
+  grid.innerHTML=filtered.map(m=>{
+    const isSel=dvState.sel?.id===m.id;
+    const selIdx=isSel?dvState.monture:0;
+    const photo=m.photos[selIdx];
+    return `<div class="prod-card${isSel?' sel':''}" onclick="dvSelectModel(${m.id})" style="cursor:pointer">
+      <div class="prod-thumb" style="background:#f0f0f0;overflow:hidden;aspect-ratio:4/3">
+        <img src="${photo.url}" alt="${m.name}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+      </div>
+      <div class="prod-info">
+        <div class="prod-name">${m.name}</div>
+        <div class="prod-ref">${m.ref} · ${photo.coloris}</div>
+        <div class="prod-swatches">${m.photos.map((p,i)=>`<div class="sw" style="width:13px;height:13px;border-radius:3px;overflow:hidden;padding:0;border:1.5px solid #ccc" title="${p.coloris}"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}</div>
+        <div class="prod-price">${m.prix} € HT · ${m.photos.length} coloris</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function dvSelectModel(id){
+  dvState.sel=MODELS.find(m=>m.id===id);
+  dvState.monture=0; dvState.verre=-1; dvState.qty=1;
+  dvRenderGrid();
+  dvRenderCfg();
+}
+
+function dvRenderCfg(){
+  const m=dvState.sel;
+  document.getElementById('dv-cfg-empty').style.display=m?'none':'flex';
+  const cc=document.getElementById('dv-cfg-content');
+  if(!m){cc.style.display='none';return;}
+  cc.style.display='flex';
+  const photo=m.photos[dvState.monture];
+  document.getElementById('dv-nom').textContent=m.name+' — '+m.forme+' / '+m.matiere;
+  document.getElementById('dv-ref').textContent=m.ref+' · '+m.prix+' € HT / paire';
+  const lc=dvState.verre>=0?VERRES[dvState.verre].c:null;
+  const svgContainer=document.getElementById('dv-svg').parentElement;
+  svgContainer.innerHTML=`<div style="position:relative;width:100%;max-width:220px;border-radius:10px;overflow:hidden">
+    <img src="${photo.url}" alt="${m.name}" style="width:100%;display:block;border-radius:10px">
+    ${lc?`<div style="position:absolute;inset:0;background:${lc};mix-blend-mode:color;pointer-events:none;border-radius:10px"></div>`:''}
+  </div>`;
+  document.getElementById('dv-coloris').innerHTML=m.photos.map((p,i)=>
+    `<div class="csw${i===dvState.monture?' act':''}" onclick="dvSetMonture(${i})" style="overflow:hidden;padding:0;border-radius:6px;width:34px;height:34px;border:2px solid ${i===dvState.monture?'#0f172a':'transparent'}">
+      <img src="${p.url}" alt="${p.coloris}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+      <div class="tip">${p.coloris}</div>
+    </div>`
+  ).join('');
+  document.getElementById('dv-verres').innerHTML=VERRES.map((v,i)=>
+    `<div class="vdot${i===dvState.verre?' act':''}" style="background:${v.c};border-color:${i===dvState.verre?'#0f172a':'rgba(0,0,0,0.15)'}" onclick="dvSetVerre(${i})"><div class="tip">${v.n}</div></div>`
+  ).join('');
+  document.getElementById('dv-verre-nom').textContent=dvState.verre>=0?' — '+VERRES[dvState.verre].n:' — Aucune';
+  document.getElementById('dv-qty').textContent=dvState.qty;
+  document.getElementById('dv-pu').textContent=m.prix+' €';
+}
+
+function dvSetMonture(i){dvState.monture=i;dvRenderCfg();}
+function dvSetVerre(i){dvState.verre=dvState.verre===i?-1:i;dvRenderCfg();}
+function dvChangeQty(d){dvState.qty=Math.max(1,dvState.qty+d);dvRenderCfg();}
+
+function dvAjouter(){
+  const m=dvState.sel;
+  if(!m){showNotif('Sélectionnez un modèle d\'abord','warn');return;}
+  const photo=m.photos[dvState.monture];
+  dvState.lignes.push({
+    id:Date.now(),
+    name:m.name, ref:m.ref, forme:m.forme,
+    monture:photo.coloris,
+    imgUrl:photo.url,
+    verre:dvState.verre>=0?VERRES[dvState.verre].n:'Sans teinte',
+    verreLc:dvState.verre>=0?VERRES[dvState.verre].c:null,
+    prix:m.prix, qty:dvState.qty
+  });
+  dvRenderRecap();
+  showNotif(dvState.qty+'× '+m.name+' ('+photo.coloris+') ajouté au devis','success');
+}
+
+function dvRenderRecap(){
+  const tbody=document.getElementById('dv-recap-body');
+  if(!dvState.lignes.length){
+    tbody.innerHTML='<tr id="dv-empty-row"><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Aucun produit ajouté</td></tr>';
+    document.getElementById('dv-nb-lignes').textContent='0 ligne(s)';
+    document.getElementById('dv-total-ht').textContent='0 €';
+    document.getElementById('dv-total-remise').textContent='0 €';
+    document.getElementById('dv-total-net').textContent='0 €';
+    return;
+  }
+  const totalHT=dvState.lignes.reduce((s,l)=>s+l.prix*l.qty,0);
+  const remisePct=parseFloat(document.getElementById('dv-remise')?.value||0);
+  const remise=Math.round(totalHT*remisePct/100);
+  const net=totalHT-remise;
+  document.getElementById('dv-nb-lignes').textContent=dvState.lignes.length+' ligne(s)';
+  document.getElementById('dv-total-ht').textContent=totalHT.toLocaleString('fr-FR')+' €';
+  document.getElementById('dv-total-remise').textContent=remise>0?'-'+remise.toLocaleString('fr-FR')+' €':'0 €';
+  document.getElementById('dv-total-net').textContent=net.toLocaleString('fr-FR')+' €';
+  tbody.innerHTML=dvState.lignes.map(l=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:52px;height:36px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f0f0f0">
+          <img src="${l.imgUrl}" alt="${l.name}" style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div><div style="font-weight:600">${l.name}</div><div style="font-size:11px;color:var(--muted)">${l.ref}</div></div>
+      </div></td>
+      <td>${l.monture}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">${l.verreLc?`<div style="width:12px;height:12px;border-radius:50%;background:${l.verreLc};border:1px solid rgba(0,0,0,0.15)"></div>`:''}<span>${l.verre}</span></div></td>
+      <td style="font-weight:600">${l.qty}</td>
+      <td>${l.prix} €</td>
+      <td style="font-weight:600;color:var(--accent)">${(l.prix*l.qty).toLocaleString('fr-FR')} €</td>
+      <td><button class="btn btn-xs" style="color:var(--danger)" onclick="dvSupprimer(${l.id})"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('');
+}
+
+function dvUpdateTotal(){ dvRenderRecap(); }
+
+function dvSupprimer(id){
+  dvState.lignes=dvState.lignes.filter(l=>l.id!==id);
+  dvRenderRecap();
+}
+
+function dvGenerer(){
+  const client=document.getElementById('dv-client').value;
+  if(!client){showNotif('Veuillez choisir un client','warn');return;}
+  if(!dvState.lignes.length){showNotif('Ajoutez au moins un produit','warn');return;}
+  const ref='#DEV-'+dvCounter++;
+  const total=dvState.lignes.reduce((s,l)=>s+l.prix*l.qty,0);
+  const remisePct=parseFloat(document.getElementById('dv-remise').value||0);
+  const net=total-Math.round(total*remisePct/100);
+  const today=new Date();
+  const dateStr=today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
+  const tbody=document.getElementById('devis-tbody');
+  const prodStr=dvState.lignes.map(l=>l.name+' x'+l.qty).join(', ');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><b>${ref}</b></td><td>${client}</td><td>${currentUser?.name?.split(' ')[0]||'—'}</td><td style="font-size:11px">${prodStr}</td><td>${net.toLocaleString('fr-FR')} €</td><td>${dateStr}</td><td><span class="badge b-orange">En attente</span></td><td><span class="tbl-action">Voir →</span></td>`;
+  tbody.prepend(tr);
+  showNotif('Devis '+ref+' créé pour '+client+' — '+net.toLocaleString('fr-FR')+' € HT','success');
+  hideDevisCreateur();
 }
 
 /* ═══════════════ MODAL ═══════════════ */
