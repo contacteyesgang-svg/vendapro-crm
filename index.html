@@ -264,6 +264,24 @@ select.fi{cursor:pointer}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+/* ── MODULE PRODUITS ADMIN ── */
+.prod-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.prod-admin-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s}
+.prod-admin-card:hover{border-color:var(--accent)}
+.prod-admin-img{width:100%;aspect-ratio:4/3;background:#f0f2f5;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer}
+.prod-admin-img img{width:100%;height:100%;object-fit:cover}
+.prod-admin-img-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:11px}
+.prod-admin-upload{position:absolute;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;color:#fff;font-size:12px;gap:5px;cursor:pointer}
+.prod-admin-img:hover .prod-admin-upload{display:flex}
+.prod-admin-body{padding:10px 12px}
+.prod-admin-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.prod-admin-prix{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:8px 0;font-size:11px}
+.prod-admin-prix-item{background:#f8fafc;border-radius:6px;padding:5px 7px;text-align:center}
+.prod-admin-prix-item label{display:block;color:var(--muted);font-size:9.5px;font-weight:600;text-transform:uppercase;margin-bottom:1px}
+.prod-admin-prix-item span{font-weight:700;font-size:12px}
+.upload-zone{border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;background:#f8fafc}
+.upload-zone:hover{border-color:var(--accent);background:#eff6ff}
+.upload-zone i{font-size:28px;color:var(--muted);display:block;margin-bottom:8px}
 /* ── STOCK ÉTATS ── */
 .stock-states{display:flex;gap:4px;align-items:center}
 .stock-chip{padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;font-family:'DM Mono',monospace}
@@ -859,6 +877,35 @@ select.fi{cursor:pointer}
       </div>
     </div>
 
+    <!-- GESTION PRODUITS ADMIN -->
+    <div class="page" id="page-produits-admin">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="fi" id="prod-search" placeholder="Rechercher un produit…" oninput="renderProduitsAdmin()" style="width:220px;padding:6px 10px;font-size:12.5px">
+          <select class="fi" id="prod-filter-forme" onchange="renderProduitsAdmin()" style="width:130px;padding:5px 9px;font-size:12.5px">
+            <option value="">Tous</option>
+            <option value="Optique">Optique</option>
+            <option value="Solaire">Solaire</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('nouveau-produit')"><i class="ti ti-plus"></i>Nouveau produit</button>
+      </div>
+      <!-- KPIs -->
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+        <div class="metric"><div class="metric-label">Total produits</div><div class="metric-val" id="kpi-total-produits">—</div></div>
+        <div class="metric"><div class="metric-label">Avec photo</div><div class="metric-val" style="color:var(--accent2)" id="kpi-avec-photo">—</div></div>
+        <div class="metric"><div class="metric-label">Sans photo</div><div class="metric-val" style="color:var(--warn)" id="kpi-sans-photo">—</div></div>
+        <div class="metric"><div class="metric-label">Prix moyen vente FR</div><div class="metric-val" style="color:var(--accent)" id="kpi-prix-moyen">—</div></div>
+      </div>
+      <!-- Grille produits -->
+      <div class="prod-admin-grid" id="prod-admin-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">
+          <i class="ti ti-loader" style="font-size:30px;display:block;margin-bottom:8px"></i>
+          Chargement des produits…
+        </div>
+      </div>
+    </div>
+
     <!-- EQUIPE -->
     <div class="page" id="page-equipe">
       <div class="card">
@@ -946,18 +993,16 @@ let DB = {
 async function loadAllData() {
   try {
     showLoadingOverlay(true);
-    const [users, clients, modeles, coloris, teintes, commandes] = await Promise.all([
+    const [users, clients, modeles, teintes, commandes] = await Promise.all([
       supa.from('users').select('*').order('name'),
       supa.from('clients').select('*').order('nom'),
       supa.from('modeles').select('*').order('nom'),
-      supa.from('coloris').select('*').order('ordre'),
       supa.from('teintes').select('*').order('ordre'),
       supa.from('vue_commandes').select('*').order('date_commande', {ascending: false}),
     ]);
     if(users.data) DB.users = users.data;
     if(clients.data) DB.clients = clients.data;
     if(modeles.data) DB.modeles = modeles.data;
-    if(coloris.data) DB.coloris = coloris.data;
     if(teintes.data) DB.teintes = teintes.data;
     if(commandes.data) DB.commandes = commandes.data;
     DB.loaded = true;
@@ -1009,36 +1054,25 @@ function syncLocalData() {
     });
   }
 
-  // Sync modèles & coloris
-  console.log('DB.modeles:', DB.modeles.length, '| DB.coloris:', DB.coloris.length);
-  if(DB.modeles.length > 0 && DB.coloris.length > 0) {
-    MODELS.length = 0;
-    DB.modeles.forEach(m => {
-      const allColoris = DB.coloris
-        .filter(c => c.modele_id === m.id)
-        .sort((a,b) => a.ordre - b.ordre);
-      const photos = allColoris.map(c => ({coloris: c.nom, url: c.photo_url || null}));
-      if(photos.length > 0) {
-        MODELS.push({
-          id: m.id, name: m.nom, ref: m.reference,
-          forme: m.forme, prix: m.prix_vente,
-          photos: photos
-        });
-      }
-    });
-    console.log('MODELS après sync:', MODELS.length, '— ex:', MODELS[0]?.name, MODELS[0]?.photos?.[0]);
-  } else if(DB.modeles.length > 0 && DB.coloris.length === 0) {
-    // Pas de coloris — créer quand même les modèles avec photo null
-    console.warn('⚠️ Coloris vides — affichage sans photo');
+  // Sync modèles — structure simplifiée (pas de coloris séparé)
+  if(DB.modeles.length > 0) {
     MODELS.length = 0;
     DB.modeles.forEach(m => {
       MODELS.push({
-        id: m.id, name: m.nom, ref: m.reference,
-        forme: m.forme, prix: m.prix_vente,
-        photos: [{coloris: m.nom, url: null}]
+        id: m.id,
+        name: m.nom,
+        ref: m.reference,
+        forme: m.forme || 'Optique',
+        prix: m.prix_vente || 0,
+        prix_gr: m.prix_vente_gr || 0,
+        prix_achat_usd: m.prix_achat_usd || 0,
+        frais_transport: m.frais_transport || 0,
+        quantite: m.quantite || 0,
+        seuil_alerte: m.seuil_alerte || 20,
+        photos: [{coloris: m.nom, url: m.photo_url || null}]
       });
     });
-    console.log('MODELS (sans coloris):', MODELS.length);
+    console.log('✅ MODELS chargés:', MODELS.length);
   }
 
   // Sync teintes
@@ -1232,7 +1266,7 @@ const PAGE_TITLES={
   dashboard:'Tableau de bord',clients:'Clients',pipeline:'Pipeline commercial',
   commandes:'Commandes',catalogue:'Catalogue & Ventes',stocks:'Stocks & Inventaire',
   'stats-produits':'Statistiques produits','stats-clients':'Statistiques clients',
-  admin:'Administration & Finance',equipe:'Équipe & Droits'
+  admin:'Administration & Finance','produits-admin':'Gestion des produits',equipe:'Équipe & Droits'
 };
 
 let currentUser=null;
@@ -1345,6 +1379,7 @@ function nav(page,el){
   document.getElementById('page-title').textContent=PAGE_TITLES[page]||page;
   if(page==='admin') setTimeout(calcMarges,100);
   if(page==='stats-produits') setTimeout(statsLoadData,100);
+  if(page==='produits-admin') setTimeout(renderProduitsAdmin,100);
 }
 
 function quickAction(){
@@ -2077,6 +2112,129 @@ function ajouterReliquatClient(clientId, ref, clientNom, lines) {
   CLIENT_RELIQUATS[clientId].push({ref, clientNom, lines, date: new Date().toLocaleString('fr-FR')});
 }
 
+/* ══════════════════════════════════════
+   FONCTIONS MODULE PRODUITS
+══════════════════════════════════════ */
+
+const TAUX_USD_EUR = 1.08; // À ajuster selon le taux du moment
+
+function calcCoutRevient() {
+  const usd = parseFloat(document.getElementById('np-usd')?.value || 0);
+  const transport = parseFloat(document.getElementById('np-transport')?.value || 0);
+  const cout = (usd + transport) * TAUX_USD_EUR;
+  const el = document.getElementById('np-cout-eur');
+  if(el) el.textContent = cout > 0 ? cout.toFixed(2)+' €' : '— €';
+  calcMargesProduit();
+}
+
+function calcMargesProduit() {
+  const usd = parseFloat(document.getElementById('np-usd')?.value || 0);
+  const transport = parseFloat(document.getElementById('np-transport')?.value || 0);
+  const cout = (usd + transport) * TAUX_USD_EUR;
+  const prixFR = parseFloat(document.getElementById('np-prix-fr')?.value || 0);
+  const prixGR = parseFloat(document.getElementById('np-prix-gr')?.value || 0);
+  const mf = document.getElementById('np-marge-fr');
+  const mg = document.getElementById('np-marge-gr');
+  if(mf && prixFR && cout) {
+    const m = Math.round((prixFR-cout)/prixFR*100);
+    mf.textContent = m+'% — '+(prixFR-cout).toFixed(2)+' €';
+    mf.style.color = m > 50 ? 'var(--accent2)' : m > 30 ? 'var(--warn)' : 'var(--danger)';
+  }
+  if(mg && prixGR && cout) {
+    const m = Math.round((prixGR-cout)/prixGR*100);
+    mg.textContent = m+'% — '+(prixGR-cout).toFixed(2)+' €';
+    mg.style.color = m > 50 ? 'var(--purple)' : m > 30 ? 'var(--warn)' : 'var(--danger)';
+  }
+}
+
+function previewPhoto(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('np-preview');
+    if(preview) { preview.src = e.target.result; preview.style.display='block'; }
+    // Stocker le base64 pour upload
+    window._photoBase64 = e.target.result;
+    window._photoFile = file;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveProduit(id) {
+  const nom = document.getElementById('np-nom')?.value?.trim();
+  if(!nom) { showNotif('Le nom du produit est obligatoire','warn'); return; }
+  
+  const btn = document.querySelector('#modal-body .btn-primary');
+  if(btn) { btn.textContent = 'Enregistrement…'; btn.disabled = true; }
+
+  let photo_url = document.getElementById('np-url')?.value?.trim() || null;
+
+  // Upload photo si fichier sélectionné
+  if(window._photoFile && window._photoBase64) {
+    try {
+      // Upload vers Supabase Storage
+      const ext = window._photoFile.name.split('.').pop();
+      const fileName = nom.replace(/\s+/g,'-').toLowerCase()+'-'+Date.now()+'.'+ext;
+      const { data: uploadData, error: uploadErr } = await supa.storage
+        .from('product-photos')
+        .upload(fileName, window._photoFile, {contentType: window._photoFile.type, upsert: true});
+      if(!uploadErr) {
+        const { data: urlData } = supa.storage.from('product-photos').getPublicUrl(fileName);
+        photo_url = urlData?.publicUrl || photo_url;
+        showNotif('Photo uploadée ✓','success');
+      } else {
+        // Fallback: utiliser base64 directement si storage pas configuré
+        photo_url = window._photoBase64;
+      }
+    } catch(e) {
+      photo_url = window._photoBase64;
+    }
+    window._photoBase64 = null;
+    window._photoFile = null;
+  }
+
+  const data = {
+    nom,
+    reference: document.getElementById('np-ref')?.value?.trim() || nom.replace(/\s+/g,'-').toUpperCase(),
+    forme: document.getElementById('np-forme')?.value || 'Optique',
+    prix_vente: parseFloat(document.getElementById('np-prix-fr')?.value) || 0,
+    prix_vente_gr: parseFloat(document.getElementById('np-prix-gr')?.value) || null,
+    prix_achat_usd: parseFloat(document.getElementById('np-usd')?.value) || null,
+    frais_transport: parseFloat(document.getElementById('np-transport')?.value) || 0,
+    quantite: parseInt(document.getElementById('np-qty')?.value) || 0,
+    seuil_alerte: parseInt(document.getElementById('np-seuil')?.value) || 20,
+    photo_url,
+    actif: true,
+  };
+
+  try {
+    let result, error;
+    if(id) {
+      ({data: result, error} = await supa.from('modeles').update(data).eq('id', id).select().single());
+    } else {
+      ({data: result, error} = await supa.from('modeles').insert(data).select().single());
+    }
+    if(error) throw new Error(error.message);
+    closeModal();
+    showNotif((id?'Produit modifié':'Produit créé')+' : '+nom+' ✓','success');
+    await loadAllData();
+    renderProduitsAdmin();
+  } catch(err) {
+    showNotif('Erreur: '+err.message,'danger');
+    if(btn) { btn.textContent = id?'Enregistrer':'Créer le produit'; btn.disabled=false; }
+  }
+}
+
+async function supprimerProduit(id) {
+  if(!confirm('Supprimer ce produit ? Cette action est irréversible.')) return;
+  const {error} = await supa.from('modeles').update({actif: false}).eq('id', id);
+  if(error) { showNotif('Erreur: '+error.message,'danger'); return; }
+  closeModal();
+  showNotif('Produit désactivé','warn');
+  await loadAllData();
+  renderProduitsAdmin();
+}
+
 /* ── Mettre à jour l'UI stock ── */
 function updateStockUI() {
   // Recalculer les métriques
@@ -2657,6 +2815,102 @@ function openModal(type,data={}){
         <button class="btn" onclick="closeModal()">Annuler</button>
         <button class="btn btn-primary" onclick="closeModal();showNotif('Invitation envoyée par email','success')"><i class="ti ti-user-plus"></i>Créer & inviter</button>
       </div>`;
+  } else if(type==='nouveau-produit' || type==='edit-produit'){
+    const isEdit = type === 'edit-produit';
+    const p = isEdit ? data : {};
+    title.textContent = isEdit ? 'Modifier — '+p.nom : 'Nouveau produit';
+    const taux = 1.08; // Taux USD → EUR approximatif
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- Colonne gauche: infos produit -->
+        <div>
+          <div class="frow" style="margin-bottom:10px">
+            <div class="fg" style="margin:0;grid-column:1/-1"><label>Nom du produit (modèle + coloris)</label>
+              <input class="fi" id="np-nom" placeholder="Ex: Aki Storm" value="${p.nom||''}"></div>
+          </div>
+          <div class="frow" style="margin-bottom:10px">
+            <div class="fg" style="margin:0"><label>Référence</label>
+              <input class="fi" id="np-ref" placeholder="AKI-STORM" value="${p.reference||''}"></div>
+            <div class="fg" style="margin:0"><label>Type</label>
+              <select class="fi" id="np-forme">
+                <option value="Optique" ${p.forme==='Optique'?'selected':''}>Optique</option>
+                <option value="Solaire" ${p.forme==='Solaire'?'selected':''}>Solaire</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:12px 0 8px;padding-top:8px;border-top:1px solid var(--border)">
+            <i class="ti ti-currency-dollar" style="margin-right:4px"></i>Prix & Coûts
+          </div>
+          <div class="frow" style="margin-bottom:10px">
+            <div class="fg" style="margin:0"><label>Prix achat (USD $)</label>
+              <input class="fi" type="number" id="np-usd" placeholder="0.00" value="${p.prix_achat_usd||''}" step="0.01" oninput="calcCoutRevient()"></div>
+            <div class="fg" style="margin:0"><label>Frais transport (USD $)</label>
+              <input class="fi" type="number" id="np-transport" placeholder="0.00" value="${p.frais_transport||''}" step="0.01" oninput="calcCoutRevient()"></div>
+          </div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:11.5px;color:var(--muted)">Coût de revient estimé (×${taux} taux + transport)</div>
+            <div style="font-size:15px;font-weight:700;color:var(--accent2)" id="np-cout-eur">— €</div>
+          </div>
+          <div class="frow" style="margin-bottom:10px">
+            <div class="fg" style="margin:0">
+              <label>Prix de vente France (€)</label>
+              <input class="fi" type="number" id="np-prix-fr" placeholder="49" value="${p.prix_vente||''}" step="0.01" oninput="calcMargesProduit()">
+            </div>
+            <div class="fg" style="margin:0">
+              <label>Prix de vente Grèce (€)</label>
+              <input class="fi" type="number" id="np-prix-gr" placeholder="55" value="${p.prix_vente_gr||''}" step="0.01" oninput="calcMargesProduit()">
+            </div>
+          </div>
+          <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="font-size:12px">Marge France : <b id="np-marge-fr" style="color:var(--accent2)">—</b></div>
+            <div style="font-size:12px">Marge Grèce : <b id="np-marge-gr" style="color:var(--purple)">—</b></div>
+          </div>
+
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:12px 0 8px;padding-top:8px;border-top:1px solid var(--border)">
+            <i class="ti ti-package" style="margin-right:4px"></i>Stock
+          </div>
+          <div class="frow" style="margin-bottom:10px">
+            <div class="fg" style="margin:0"><label>Quantité en stock</label>
+              <input class="fi" type="number" id="np-qty" placeholder="0" value="${p.quantite||0}" min="0"></div>
+            <div class="fg" style="margin:0"><label>Seuil alerte</label>
+              <input class="fi" type="number" id="np-seuil" placeholder="20" value="${p.seuil_alerte||20}" min="0"></div>
+          </div>
+        </div>
+
+        <!-- Colonne droite: photo -->
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:8px">
+            <i class="ti ti-photo" style="margin-right:4px"></i>Photo du produit
+          </div>
+          <div class="upload-zone" id="np-upload-zone" onclick="document.getElementById('np-file').click()">
+            ${p.photo_url 
+              ? `<img id="np-preview" src="${p.photo_url}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:8px">`
+              : `<img id="np-preview" style="display:none;width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:8px">`}
+            <i class="ti ti-cloud-upload" style="font-size:28px;color:var(--muted);display:block;margin-bottom:8px"></i>
+            <div style="font-size:12.5px;font-weight:600;color:var(--muted)">Cliquez pour uploader</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">JPG, PNG — max 5MB</div>
+          </div>
+          <input type="file" id="np-file" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+          <div id="np-url-container" style="margin-top:10px">
+            <label class="fg" style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Ou URL directe</label>
+            <input class="fi" id="np-url" placeholder="https://..." value="${p.photo_url||''}" oninput="document.getElementById('np-preview').src=this.value;document.getElementById('np-preview').style.display=this.value?'block':'none'">
+          </div>
+          ${isEdit ? `<div style="margin-top:12px;padding:10px;background:#fff7ed;border-radius:8px;font-size:11.5px;color:#92400e">
+            <b>ID produit :</b> <span style="font-family:monospace;font-size:10px">${p.id}</span>
+          </div>` : ''}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        ${isEdit ? `<button class="btn btn-danger btn-sm" onclick="supprimerProduit('${p.id}')"><i class="ti ti-trash"></i>Supprimer</button>` : ''}
+        <button class="btn btn-primary" onclick="saveProduit(${isEdit?`'${p.id}'`:'null'})">
+          <i class="ti ti-check"></i>${isEdit ? 'Enregistrer' : 'Créer le produit'}
+        </button>
+      </div>`;
+    setTimeout(calcCoutRevient, 50);
+
   } else if(type==='newclient'){
     title.textContent='Nouveau client';
     const agentsOpts = USERS_DB.filter(u=>u.perms?.creer_cmd).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
@@ -3167,6 +3421,92 @@ function genBLFromDetail(id) {
 }
 
 function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+/* ══════════════════════════════════════
+   GESTION PRODUITS ADMIN
+══════════════════════════════════════ */
+function renderProduitsAdmin() {
+  const grid = document.getElementById('prod-admin-grid'); if(!grid) return;
+  const search = document.getElementById('prod-search')?.value?.toLowerCase() || '';
+  const forme = document.getElementById('prod-filter-forme')?.value || '';
+  
+  let prods = DB.modeles.length > 0 ? DB.modeles : MODELS.map(m => ({
+    id: m.id, nom: m.name, reference: m.ref, forme: m.forme,
+    prix_vente: m.prix, prix_vente_gr: m.prix_gr,
+    prix_achat_usd: m.prix_achat_usd, quantite: m.quantite,
+    photo_url: m.photos?.[0]?.url
+  }));
+  
+  if(search) prods = prods.filter(p => p.nom?.toLowerCase().includes(search) || p.reference?.toLowerCase().includes(search));
+  if(forme) prods = prods.filter(p => p.forme === forme);
+  
+  const avecPhoto = prods.filter(p => p.photo_url).length;
+  const prixMoyen = prods.length ? Math.round(prods.reduce((s,p)=>s+(p.prix_vente||0),0)/prods.length) : 0;
+  
+  const k1=document.getElementById('kpi-total-produits'); if(k1) k1.textContent=prods.length;
+  const k2=document.getElementById('kpi-avec-photo'); if(k2) k2.textContent=avecPhoto;
+  const k3=document.getElementById('kpi-sans-photo'); if(k3) k3.textContent=prods.length-avecPhoto;
+  const k4=document.getElementById('kpi-prix-moyen'); if(k4) k4.textContent=prixMoyen+' €';
+
+  if(!prods.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)"><i class="ti ti-package-off" style="font-size:30px;display:block;margin-bottom:8px"></i>Aucun produit trouvé</div>';
+    return;
+  }
+
+  grid.innerHTML = prods.map(p => {
+    const hasPhoto = !!p.photo_url;
+    const stockColor = !p.quantite ? 'var(--danger)' : p.quantite < (p.seuil_alerte||20) ? 'var(--warn)' : 'var(--accent2)';
+    const cout = ((p.prix_achat_usd||0) + (p.frais_transport||0)) * 1.08;
+    const margeF = p.prix_vente && cout ? Math.round((p.prix_vente-cout)/p.prix_vente*100) : null;
+    return `<div class="prod-admin-card">
+      <div class="prod-admin-img" onclick="openModalEditProduit('${p.id}')">
+        ${hasPhoto 
+          ? `<img src="${p.photo_url}" alt="${p.nom}" loading="lazy">`
+          : `<div class="prod-admin-img-placeholder"><i class="ti ti-camera-off" style="font-size:24px"></i><span>Pas de photo</span></div>`}
+        <div class="prod-admin-upload"><i class="ti ti-upload" style="font-size:16px"></i> Modifier</div>
+      </div>
+      <div class="prod-admin-body">
+        <div class="prod-admin-name">${p.nom}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span class="badge ${p.forme==='Solaire'?'b-orange':'b-blue'}" style="font-size:10px">${p.forme||'Optique'}</span>
+          <span style="font-size:11px;font-weight:700;color:${stockColor}"><i class="ti ti-package" style="font-size:11px"></i> ${p.quantite||0} pcs</span>
+        </div>
+        <div class="prod-admin-prix">
+          <div class="prod-admin-prix-item">
+            <label>Achat USD</label>
+            <span>${p.prix_achat_usd ? p.prix_achat_usd+'$' : '—'}</span>
+          </div>
+          <div class="prod-admin-prix-item">
+            <label>Vente FR</label>
+            <span style="color:var(--accent)">${p.prix_vente ? p.prix_vente+'€' : '—'}</span>
+          </div>
+          <div class="prod-admin-prix-item">
+            <label>Vente GR</label>
+            <span style="color:var(--purple)">${p.prix_vente_gr ? p.prix_vente_gr+'€' : '—'}</span>
+          </div>
+        </div>
+        ${margeF !== null ? `<div style="font-size:11px;color:var(--accent2);text-align:right">Marge : ${margeF}%</div>` : ''}
+        <button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openModalEditProduit('${p.id}')">
+          <i class="ti ti-edit"></i> Modifier
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModalEditProduit(id) {
+  const p = DB.modeles.find(m => m.id === id) || MODELS.find(m => m.id === id);
+  if(!p) { openModal('nouveau-produit'); return; }
+  const prod = DB.modeles.find(m => m.id === id) || {
+    id: p.id, nom: p.name||p.nom, reference: p.ref||p.reference,
+    forme: p.forme, prix_vente: p.prix||p.prix_vente,
+    prix_vente_gr: p.prix_gr||p.prix_vente_gr,
+    prix_achat_usd: p.prix_achat_usd, frais_transport: p.frais_transport,
+    quantite: p.quantite, seuil_alerte: p.seuil_alerte||20,
+    photo_url: p.photos?.[0]?.url || p.photo_url
+  };
+  openModal('edit-produit', prod);
+}
 
 /* ══════════════════════════════════════
    STATS COMBINAISONS MONTURE/TEINTE
