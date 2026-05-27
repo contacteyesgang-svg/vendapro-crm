@@ -933,7 +933,7 @@ select.fi{cursor:pointer}
    SUPABASE — Configuration & helpers
 ══════════════════════════════════════ */
 const SUPA_URL = 'https://ctpjqtcmvfzyyvaqfqad.supabase.co';
-const SUPA_KEY = 'sb_publishable_mmpB-jI7a9DiHn3WETRp0g_KYftHaoH';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cGpxdGNtdmZ6eXl2YXFmcWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjAwNjEsImV4cCI6MjA5NTI5NjA2MX0.HkwcpfqlRbIqQoi_lDjCWdNy01kHgWNQBbUjU-Eit8g';
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // Cache local pour éviter les requêtes inutiles
@@ -1010,13 +1010,14 @@ function syncLocalData() {
   }
 
   // Sync modèles & coloris
+  console.log('DB.modeles:', DB.modeles.length, '| DB.coloris:', DB.coloris.length);
   if(DB.modeles.length > 0 && DB.coloris.length > 0) {
     MODELS.length = 0;
     DB.modeles.forEach(m => {
-      const photos = DB.coloris
+      const allColoris = DB.coloris
         .filter(c => c.modele_id === m.id)
-        .sort((a,b) => a.ordre - b.ordre)
-        .map(c => ({coloris: c.nom, url: c.photo_url}));
+        .sort((a,b) => a.ordre - b.ordre);
+      const photos = allColoris.map(c => ({coloris: c.nom, url: c.photo_url || null}));
       if(photos.length > 0) {
         MODELS.push({
           id: m.id, name: m.nom, ref: m.reference,
@@ -1025,6 +1026,19 @@ function syncLocalData() {
         });
       }
     });
+    console.log('MODELS après sync:', MODELS.length, '— ex:', MODELS[0]?.name, MODELS[0]?.photos?.[0]);
+  } else if(DB.modeles.length > 0 && DB.coloris.length === 0) {
+    // Pas de coloris — créer quand même les modèles avec photo null
+    console.warn('⚠️ Coloris vides — affichage sans photo');
+    MODELS.length = 0;
+    DB.modeles.forEach(m => {
+      MODELS.push({
+        id: m.id, name: m.nom, ref: m.reference,
+        forme: m.forme, prix: m.prix_vente,
+        photos: [{coloris: m.nom, url: null}]
+      });
+    });
+    console.log('MODELS (sans coloris):', MODELS.length);
   }
 
   // Sync teintes
@@ -1045,6 +1059,7 @@ function syncLocalData() {
   renderClients();
   renderCatalogue();
   renderDashboard();
+  console.log('✅ Données Supabase synchronisées — Modèles:', MODELS.length, '| Clients:', CLIENTS_DB.length);
 }
 
 /* ── CRUD Clients ── */
@@ -2152,8 +2167,8 @@ function renderOrderVisual() {
     const swatches = m.photos.map((p,i) => `<div class="vcard-sw${i===0?' a':''}" title="${p.coloris}" onclick="event.stopPropagation();vcardSetColoris(${m.id},${i},this)"><img src="${p.url}" loading="lazy"></div>`).join('');
     return `<div class="vcard" id="vcard-${m.id}" onclick="openCfgDrawer(${m.id})">
       ${totalQty>0?`<div class="vcard-in-cart">${totalQty} pcs</div>`:''}
-      <div class="vcard-img">
-        <img id="vcard-img-${m.id}" src="${photo.url}" alt="${m.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">
+        <div class="vcard-img">
+        <img id="vcard-img-${m.id}" src="${photo.url||'https://static.wixstatic.com/media/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png/v1/fill/w_300,h_225,al_c,q_85/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png'}" alt="${m.name}" loading="lazy" style="width:100%;height:100%;object-fit:${photo.url?'cover':'contain'};display:block;background:#f0f0f0;padding:${photo.url?'0':'10px'}">
       </div>
       <div class="vcard-body">
         <div class="vcard-name">${m.name}</div>
@@ -2274,7 +2289,12 @@ function dwRender() {
   document.getElementById('dw-ref').textContent = m.ref + ' · ' + m.prix + ' € HT';
   // Photo
   const img = document.getElementById('dw-img');
-  if(img) img.src = photo.url;
+  if(img) {
+    img.src = photo.url || 'https://static.wixstatic.com/media/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png/v1/fill/w_600,h_450,al_c,q_85/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png';
+    img.style.objectFit = photo.url ? 'cover' : 'contain';
+    img.style.padding = photo.url ? '0' : '20px';
+    img.style.background = '#f8fafc';
+  }
   // Badge teinte en bas de la photo (photo reste intacte)
   const lc = orderState.dwVerre>=0 ? (orderState.dwTrans ? VERRES_TRANS[orderState.dwVerre].c : VERRES_STD[orderState.dwVerre].c) : null;
   const nomV2 = orderState.dwVerre>=0 ? (orderState.dwTrans ? VERRES_TRANS[orderState.dwVerre].n : VERRES_STD[orderState.dwVerre].n) : null;
