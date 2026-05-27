@@ -1016,8 +1016,13 @@ select.fi{cursor:pointer}
    SUPABASE — Configuration & helpers
 ══════════════════════════════════════ */
 const SUPA_URL = 'https://ctpjqtcmvfzyyvaqfqad.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cGpxdGNtdmZ6eXl2YXFmcWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjAwNjEsImV4cCI6MjA5NTI5NjA2MX0.HkwcpfqlRbIqQoi_lDjCWdNy01kHgWNQBbUjU-Eit8g';
-const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+const SUPA_KEY = 'sb_publishable_mmpB-jI7a9DiHn3WETRp0g_KYftHaoH';
+const SUPA_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cGpxdGNtdmZ6eXl2YXFmcWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjAwNjEsImV4cCI6MjA5NTI5NjA2MX0.HkwcpfqlRbIqQoi_lDjCWdNy01kHgWNQBbUjU-Eit8g';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  global: {
+    headers: { 'Authorization': 'Bearer ' + SUPA_JWT }
+  }
+});
 
 // Cache local pour éviter les requêtes inutiles
 let DB = {
