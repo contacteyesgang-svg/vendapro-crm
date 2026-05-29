@@ -824,7 +824,7 @@ select.fi{cursor:pointer}
             </div>
           </div>
           <table class="tbl">
-            <thead><tr><th>Modèle</th><th>Coloris</th><th style="text-align:center">Disponible</th><th style="text-align:center">Réservé</th><th style="text-align:center">Réel</th><th>Statut</th><th></th></tr></thead>
+            <thead><tr><th>Modèle</th><th>Modèle</th><th style="text-align:center">Disponible</th><th style="text-align:center">Réservé</th><th style="text-align:center">Réel</th><th>Statut</th><th></th></tr></thead>
             <tbody id="stock-montures-tbody">
               <tr><td><b>KAZUKI</b></td><td>Ghost</td><td style="text-align:center"><span class="stock-chip sc-dispo">142</span></td><td style="text-align:center"><span class="stock-chip sc-reserve">24</span></td><td style="text-align:center"><span class="stock-chip sc-total">166</span></td><td><span class="badge b-green">OK</span></td><td><span class="tbl-action" onclick="openModal('reassort')">+Stock</span></td></tr>
               <tr><td><b>AKI</b></td><td>Storm</td><td style="text-align:center"><span class="stock-chip sc-dispo" style="background:#fee2e2;color:#dc2626">8</span></td><td style="text-align:center"><span class="stock-chip sc-reserve">36</span></td><td style="text-align:center"><span class="stock-chip sc-total">44</span></td><td><span class="badge b-red">Critique</span></td><td><span class="tbl-action" style="color:var(--danger)" onclick="openModal('reassort')">Urgence</span></td></tr>
@@ -1597,21 +1597,38 @@ function renderClients(filter=''){
   if(filter)list=list.filter(c=>c.nom.toLowerCase().includes(filter.toLowerCase())||c.contact.toLowerCase().includes(filter.toLowerCase()));
   document.getElementById('clients-count').textContent=list.length+' clients';
   const sm={VIP:'b-green',Actif:'b-blue',Nouveau:'b-orange',Inactif:'b-red'};
-  document.getElementById('clients-tbody').innerHTML=list.map(c=>`
-    <tr style="cursor:pointer" onclick="openFicheClient(${c.id})">
-      <td><div style="display:flex;align-items:center;gap:8px">
-        <div class="av" style="width:28px;height:28px;font-size:10px;background:var(--accent);flex-shrink:0">${c.nom.charAt(0)+c.nom.split(' ')[1]?.charAt(0)||''}</div>
-        <div><div style="font-weight:600">${c.nom}</div><div style="font-size:10.5px;color:var(--muted)">${CLIENTS_FULL[c.id]?.email||''}</div></div>
+  document.getElementById('clients-tbody').innerHTML=list.map(c=>{
+    // Support colonnes Supabase ET colonnes locales
+    const nom = c.nom||'—';
+    const contact = c.contact_nom||c.contact||'—';
+    const ville = c.ville||'—';
+    const email = c.email||'';
+    const ca = (c.ca_annuel||c.ca||0);
+    const nbCmd = c.nb_commandes||c.nbCmd||0;
+    const statut = c.statut||'Nouveau';
+    const initials = nom.split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase();
+    const agentNom = USERS_DB.find(u=>u.id===c.agent||u.email===c.agent_email)?.name?.split(' ')[0]||'—';
+    const colors = ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
+    const color = colors[nom.charCodeAt(0)%colors.length];
+    return `<tr style="cursor:pointer" onclick="openFicheClient('${c.id}')">
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="av" style="width:36px;height:36px;font-size:12px;flex-shrink:0;background:${color}">${initials}</div>
+        <div><div style="font-weight:700;font-size:13.5px">${nom}</div><div style="font-size:11.5px;color:var(--muted)">${email}</div></div>
       </div></td>
-      <td>${c.contact}</td>
-      <td>${c.ville}</td>
-      <td>${USERS_DB.find(u=>u.id===c.agent)?.name?.split(' ')[0]||'—'}</td>
-      <td style="font-weight:600;color:var(--accent)">${c.ca.toLocaleString('fr-FR')} €</td>
-      <td style="color:var(--muted)">${c.nbCmd}</td>
-      <td style="color:var(--muted)">${c.dernierAchat}</td>
-      <td><span class="badge ${sm[c.statut]||'b-gray'}">${c.statut}</span></td>
-      <td><span class="tbl-action" onclick="event.stopPropagation();lancerCommandeClientId(${c.id})"><i class="ti ti-shopping-cart" style="font-size:12px"></i> Commander</span></td>
-    </tr>`).join('');
+      <td style="font-size:13px">${contact}</td>
+      <td style="font-size:13px;color:var(--muted)">${ville}</td>
+      <td style="font-size:13px">${agentNom}</td>
+      <td style="font-weight:700;color:var(--accent);font-size:13.5px">${ca.toLocaleString('fr-FR')} €</td>
+      <td style="color:var(--muted);font-size:13px">${nbCmd}</td>
+      <td style="color:var(--muted);font-size:12px">—</td>
+      <td><span class="badge ${sm[statut]||'b-gray'}">${statut}</span></td>
+      <td>
+        <button class="btn btn-primary btn-xs" onclick="event.stopPropagation();lancerCommandeClientId('${c.id}')">
+          <i class="ti ti-shopping-cart"></i> Commander
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
   // Remplir aussi le select commande
   const sel = document.getElementById('order-client');
   if(sel){
@@ -1624,16 +1641,18 @@ function filterClients(v){renderClients(v);}
 
 function openFicheClient(id){
   if(id==='new'){openModal('newclient');return;}
-  const c=CLIENTS_DB.find(x=>x.id===id);
-  const f=CLIENTS_FULL[id];
-  if(!c||!f)return;
+  // Support UUID Supabase et id numérique
+  const c = CLIENTS_DB.find(x=>String(x.id)===String(id));
+  if(!c){ showNotif('Client introuvable — rechargez la page','warn'); return; }
+  // CLIENTS_FULL peut être vide avec Supabase — on utilise directement c
+  const f = CLIENTS_FULL[id] || CLIENTS_FULL[c.id] || {};
   currentClientFiche=c;
-  const initials=c.nom.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('cf-av').textContent=initials;
-  document.getElementById('cf-nom').textContent=c.nom;
-  const agentName = USERS_DB.find(u=>u.id===c.agent||u.email===c.agent_email)?.name || c.agent || '—';
-  const setTxt = (id,val) => { const e=document.getElementById(id); if(e) e.textContent=val||'—'; };
-  setTxt('cf-ville-agent', (c.ville||c.code_postal||'')+(agentName?' · '+agentName:''));
+  const initials = c.nom.split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase()||'??';
+  const setTxt = (eid,val) => { const e=document.getElementById(eid); if(e) e.textContent=val||'—'; };
+  document.getElementById('cf-av').textContent = initials;
+  document.getElementById('cf-nom').textContent = c.nom||'—';
+  const agentName = USERS_DB.find(u=>u.id===c.agent||u.email===c.agent_email)?.name || '—';
+  setTxt('cf-ville-agent', (c.ville||c.code_postal||'—')+(agentName!=='—'?' · '+agentName:''));
   setTxt('cf-entreprise', c.nom);
   setTxt('cf-juridique', c.forme_juridique||f.juridique||'—');
   setTxt('cf-contact', c.contact_nom||c.contact||'—');
@@ -2834,7 +2853,7 @@ function openModal(type,data={}){
       </div>
       <div class="frow" style="margin-bottom:10px">
         <div class="fg" style="margin:0"><label>Modèle Pawa</label><select class="fi" id="mc-model" onchange="modalCalcTotal()"><option value="">Choisir…</option>${modelsOpts}</select></div>
-        <div class="fg" style="margin:0"><label>Coloris monture</label><select class="fi" id="mc-coloris"><option>Ghost</option><option>Topaz</option><option>Black Pump</option><option>Tortoise</option><option>Off White</option><option>Storm</option><option>Khaki</option><option>Crystal Green</option><option>Crystal Coffee</option></select></div>
+        <div class="fg" style="margin:0"><label>Nb de pièces</label><input class="fi" type="number" id="mc-qty2" value="12" min="1" oninput="modalCalcTotal()"></div>
       </div>
       <div class="frow" style="margin-bottom:10px">
         <div class="fg" style="margin:0"><label>Teinte verres</label>
@@ -4193,7 +4212,7 @@ function submitCommande(){
   if(!client){showNotif('Choisissez un client','warn');return;}
   if(!model){showNotif('Choisissez un modèle','warn');return;}
   if(!qty||qty<1){showNotif('Quantité invalide','warn');return;}
-  const coloris=document.getElementById('mc-coloris')?.value||'';
+  const coloris='';
   const verreEl=document.getElementById('mc-verre');
   const verreNom=verreEl?.options[verreEl.selectedIndex]?.text||'Sans teinte';
   const supp=parseInt(verreEl?.value||0);
