@@ -549,16 +549,92 @@ select.fi{cursor:pointer}
       </div>
     </div>
 
-    <!-- PIPELINE -->
-    <div class="page" id="page-pipeline">
-      <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:13px">
-        <div class="metric"><div class="metric-label">Total pipeline</div><div class="metric-val" style="color:var(--accent)" id="pipe-total">—</div></div>
-        <div class="metric"><div class="metric-label">Taux conversion</div><div class="metric-val" style="color:var(--accent2)">34%</div></div>
-        <div class="metric"><div class="metric-label">Durée moyenne</div><div class="metric-val">18 j</div></div>
-        <div class="metric"><div class="metric-label">Affaires actives</div><div class="metric-val" style="color:var(--purple)" id="pipe-actives">—</div></div>
+    <!-- FACTURATION -->
+    <div class="page" id="page-facturation">
+      <!-- FILTRES -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <div style="display:flex;gap:6px;background:#f3f4f6;border-radius:10px;padding:4px" id="fact-period-tabs">
+          <button class="btn btn-sm active" id="fp-jour" onclick="factFilter('jour',this)">Jour</button>
+          <button class="btn btn-sm" id="fp-mois" onclick="factFilter('mois',this)">Mois</button>
+          <button class="btn btn-sm" id="fp-annee" onclick="factFilter('annee',this)">Année</button>
+          <button class="btn btn-sm" id="fp-tout" onclick="factFilter('tout',this)">Tout</button>
+        </div>
+        <input type="date" class="fi" id="fact-date-from" style="width:150px;padding:6px 10px;font-size:13px" onchange="factRender()">
+        <span style="color:var(--muted);font-size:13px">→</span>
+        <input type="date" class="fi" id="fact-date-to" style="width:150px;padding:6px 10px;font-size:13px" onchange="factRender()">
+        <div id="fact-agent-filter"></div>
       </div>
-      <div class="pipe-board" id="pipe-board"></div>
+
+      <!-- KPIs -->
+      <div class="metrics" id="fact-kpis">
+        <div class="metric" id="fact-kpi-ca">
+          <div class="metric-label">CA Total HT</div>
+          <div class="metric-val" style="color:var(--accent)" id="fact-ca-total">—</div>
+          <div class="metric-sub" id="fact-ca-sub">sur la période</div>
+        </div>
+        <div class="metric" id="fact-kpi-cmds">
+          <div class="metric-label">Commandes livrées</div>
+          <div class="metric-val" id="fact-nb-cmds">—</div>
+          <div class="metric-sub" id="fact-panier-moyen">Panier moyen —</div>
+        </div>
+        <div class="metric" id="fact-kpi-commission" style="display:none">
+          <div class="metric-label">Commissions (20%)</div>
+          <div class="metric-val" style="color:var(--accent2)" id="fact-commission">—</div>
+          <div class="metric-sub">Total équipe</div>
+        </div>
+        <div class="metric" id="fact-kpi-top">
+          <div class="metric-label">Top agent</div>
+          <div class="metric-val" style="font-size:15px" id="fact-top-agent">—</div>
+          <div class="metric-sub" id="fact-top-agent-ca">—</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <!-- CA PAR AGENT -->
+        <div class="card" id="fact-agents-card">
+          <div class="card-hdr">
+            <div class="card-hdr-title"><i class="ti ti-users" style="color:var(--accent);margin-right:6px"></i>CA par agent</div>
+            <span class="badge b-blue" id="fact-agents-count">—</span>
+          </div>
+          <div class="card-body" id="fact-agents-list">
+            <div style="text-align:center;padding:20px;color:var(--muted)">Chargement…</div>
+          </div>
+        </div>
+
+        <!-- COMMISSIONS -->
+        <div class="card" id="fact-commissions-card">
+          <div class="card-hdr">
+            <div class="card-hdr-title"><i class="ti ti-coin" style="color:var(--accent2);margin-right:6px"></i>Calcul commissions (20%)</div>
+          </div>
+          <div class="card-body" id="fact-commissions-list">
+            <div style="text-align:center;padding:20px;color:var(--muted)">Chargement…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLEAU FACTURES -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-title"><i class="ti ti-file-invoice" style="color:var(--purple);margin-right:6px"></i>Détail des commandes livrées</div>
+          <button class="btn btn-sm" onclick="exportFactCSV()"><i class="ti ti-download"></i>Export CSV</button>
+        </div>
+        <table class="tbl">
+          <thead><tr>
+            <th>Référence</th><th>Client</th><th>Agent</th>
+            <th>Date livraison</th>
+            <th style="text-align:right">Montant HT</th>
+            <th style="text-align:right">Frais port</th>
+            <th style="text-align:right">Base commission</th>
+            <th style="text-align:right">TTC</th>
+            <th>Statut</th>
+          </tr></thead>
+          <tbody id="fact-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
 
     <!-- COMMANDES -->
     <div class="page" id="page-commandes">
@@ -1428,6 +1504,7 @@ function nav(page,el){
   document.getElementById('page-title').textContent=PAGE_TITLES[page]||page;
   if(page==='admin') setTimeout(calcMarges,100);
   if(page==='stats-produits') setTimeout(statsLoadData,100);
+  if(page==='facturation') { setTimeout(()=>{ factFilter('mois', document.getElementById('fp-mois')); factLoadData(); }, 100); }
   if(page==='produits-admin') setTimeout(renderProduitsAdmin,100);
   if(page==='stocks') setTimeout(updateStockUI,100);
   if(page==='commandes') updateCmdBadges();
@@ -3474,6 +3551,293 @@ function genBLFromDetail(id) {
 }
 
 function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+/* ══════════════════════════════════════
+   MODULE FACTURATION
+══════════════════════════════════════ */
+let factState = { filter:'mois', dateFrom:'', dateTo:'', agentFilter:'all' };
+
+// Données de démo (remplacées par Supabase quand disponible)
+const FACT_DEMO = [
+  {ref:'CMD-2903', client:'Vision Plus Nice', agent:'Leslie L.', agent_id:'master', date:'2026-05-24', ht:2352, statut:'expedie'},
+  {ref:'CMD-2904', client:'Krys Bordeaux', agent:'Leslie L.', agent_id:'master', date:'2026-05-23', ht:3084, statut:'expedie'},
+  {ref:'CMD-2905', client:'Optic 2000 Lyon', agent:'Pierre A.', agent_id:'agent1', date:'2026-05-22', ht:1416, statut:'expedie'},
+  {ref:'CMD-2906', client:'Krys Nantes', agent:'Samy B.', agent_id:'agent2', date:'2026-05-21', ht:1764, statut:'expedie'},
+  {ref:'CMD-2901', client:'Optical Center Paris', agent:'Pierre A.', agent_id:'agent1', date:'2026-05-18', ht:2880, statut:'expedie'},
+  {ref:'CMD-2900', client:'Afflelou Marseille', agent:'Samy B.', agent_id:'agent2', date:'2026-05-15', ht:3240, statut:'expedie'},
+  {ref:'CMD-2899', client:'Krys Lyon', agent:'Leslie L.', agent_id:'master', date:'2026-05-12', ht:1980, statut:'expedie'},
+  {ref:'CMD-2898', client:'Atol Bordeaux', agent:'Pierre A.', agent_id:'agent1', date:'2026-05-08', ht:2520, statut:'expedie'},
+  {ref:'CMD-2897', client:'Kramer Optique', agent:'Samy B.', agent_id:'agent2', date:'2026-04-28', ht:1620, statut:'expedie'},
+  {ref:'CMD-2896', client:'Vision Plus Toulouse', agent:'Leslie L.', agent_id:'master', date:'2026-04-20', ht:2700, statut:'expedie'},
+];
+
+function factFilter(period, el) {
+  factState.filter = period;
+  document.querySelectorAll('#fact-period-tabs .btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  // Calculer les dates selon la période
+  const now = new Date();
+  let from, to = now.toISOString().split('T')[0];
+  if(period === 'jour') {
+    from = to;
+  } else if(period === 'mois') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  } else if(period === 'annee') {
+    from = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+  } else {
+    from = '2020-01-01';
+  }
+  const df = document.getElementById('fact-date-from');
+  const dt = document.getElementById('fact-date-to');
+  if(df) df.value = from;
+  if(dt) dt.value = to;
+  factState.dateFrom = from;
+  factState.dateTo = to;
+  factRender();
+}
+
+async function factLoadData() {
+  const isAdmin = currentUser?.id === 'admin';
+  const isMaster = currentUser?.id === 'master';
+  const isAgent = !isAdmin && !isMaster;
+
+  // Filtre agent dans la nav (Admin et Master voient tout)
+  const filterEl = document.getElementById('fact-agent-filter');
+  if(filterEl && (isAdmin || isMaster)) {
+    const agents = [
+      {id:'all', name:'Tous les agents'},
+      {id:'master', name:'Leslie L.'},
+      {id:'agent1', name:'Pierre A.'},
+      {id:'agent2', name:'Samy B.'},
+    ];
+    filterEl.innerHTML = `<select class="fi" id="fact-agent-sel" onchange="factState.agentFilter=this.value;factRender()" style="width:160px;padding:6px 10px;font-size:13px">
+      ${agents.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}
+    </select>`;
+  }
+
+  // Masquer commissions pour les agents
+  const commKpi = document.getElementById('fact-kpi-commission');
+  const commCard = document.getElementById('fact-commissions-card');
+  const agentsCard = document.getElementById('fact-agents-card');
+  if(isAgent) {
+    if(commKpi) commKpi.style.display = 'none';
+    if(commCard) commCard.style.display = 'none';
+    if(agentsCard) agentsCard.style.display = 'none';
+  } else {
+    if(commKpi) commKpi.style.display = 'block';
+    if(commCard) commCard.style.display = 'block';
+    if(agentsCard) agentsCard.style.display = 'block';
+  }
+
+  // Charger depuis Supabase ou demo
+  try {
+    const { data, error } = await supa.from('commandes')
+      .select('reference, client_id, statut, montant_ht, montant_tva, montant_ttc, date_commande, agent_email')
+      .eq('statut', 'expedie')
+      .order('date_commande', {ascending: false});
+    if(error) throw error;
+    // Enrichir avec noms clients
+    const enriched = (data||[]).map(c => {
+      const client = CLIENTS_DB.find(cl => cl.id === c.client_id);
+      const agent = USERS_DB.find(u => u.email === c.agent_email);
+      return {
+        ref: c.reference, client: client?.nom || '—',
+        agent: agent?.name || c.agent_email || '—',
+        agent_id: agent?.id || 'other',
+        date: c.date_commande?.split('T')[0] || '',
+        ht: c.montant_ht || 0,
+        tva: c.montant_tva || 0,
+        ttc: c.montant_ttc || 0,
+        statut: c.statut
+      };
+    });
+    factState.rawData = enriched.length > 0 ? enriched : FACT_DEMO;
+  } catch(e) {
+    factState.rawData = FACT_DEMO;
+  }
+  factRender();
+}
+
+/* ── Calcul frais de port par commande ──
+   France + lunettes  → 9€ HT  (gratuit si ≥ 1000€)
+   France + verres seuls → 5€ HT (gratuit si ≥ 1000€)
+   Italie             → 25€ HT toujours
+   Commission         = (CA HT - Frais de port) × 20%
+*/
+function calcFdp(cmd) {
+  const pays = cmd.pays || 'France';
+  const ht = cmd.ht || 0;
+  const verresSeulement = cmd.verres_seuls || false;
+  if(pays === 'Italie' || pays === 'Italy') return 25;
+  if(ht >= 1000) return 0;
+  return verresSeulement ? 5 : 9;
+}
+
+function factRender() {
+  const isAdmin = currentUser?.id === 'admin';
+  const isMaster = currentUser?.id === 'master';
+  const isAgent = !isAdmin && !isMaster;
+  const data = factState.rawData || FACT_DEMO;
+  const from = factState.dateFrom || '2020-01-01';
+  const to = factState.dateTo || '2099-12-31';
+  const agentSel = factState.agentFilter || 'all';
+
+  let filtered = data.filter(c => c.date >= from && c.date <= to);
+  if(isAgent) filtered = filtered.filter(c => c.agent_id === currentUser.id);
+  else if(agentSel !== 'all') filtered = filtered.filter(c => c.agent_id === agentSel);
+
+  // Calcul avec et sans frais de port
+  const totalHT = filtered.reduce((s,c) => s+(c.ht||0), 0);
+  const totalFdp = filtered.reduce((s,c) => s+calcFdp(c), 0);
+  const totalHT_HFdp = totalHT - totalFdp; // Base de commission
+  const totalCommission = Math.round(totalHT_HFdp * 0.20);
+  const panierMoyen = filtered.length ? Math.round(totalHT/filtered.length) : 0;
+
+  const setEl = (id,val) => { const e=document.getElementById(id); if(e) e.textContent=val; };
+  setEl('fact-ca-total', totalHT.toLocaleString('fr-FR')+' €');
+  setEl('fact-ca-sub', filtered.length+' commandes · FdP : '+totalFdp.toLocaleString('fr-FR')+' €');
+  setEl('fact-nb-cmds', filtered.length);
+  setEl('fact-panier-moyen', 'Panier moyen : '+panierMoyen.toLocaleString('fr-FR')+' €');
+  setEl('fact-commission', totalCommission.toLocaleString('fr-FR')+' €');
+
+  // KPI base de commission
+  const commKpiEl = document.getElementById('fact-kpi-commission');
+  if(commKpiEl && !isAgent) {
+    commKpiEl.style.display = 'block';
+    commKpiEl.innerHTML = `
+      <div class="metric-label">Commissions équipe (20%)</div>
+      <div class="metric-val" style="color:var(--accent2)">${totalCommission.toLocaleString('fr-FR')} €</div>
+      <div class="metric-sub">Base : ${totalHT_HFdp.toLocaleString('fr-FR')} € <span style="color:var(--muted)">(HT hors FdP)</span></div>`;
+  }
+
+  // Top agent (sur base HFdP)
+  const agentMap = {};
+  filtered.forEach(c => {
+    const fdp = calcFdp(c);
+    if(!agentMap[c.agent]) agentMap[c.agent] = {ca:0, caHFdp:0, fdp:0, nb:0, id:c.agent_id};
+    agentMap[c.agent].ca += c.ht||0;
+    agentMap[c.agent].caHFdp += Math.max(0,(c.ht||0)-fdp);
+    agentMap[c.agent].fdp += fdp;
+    agentMap[c.agent].nb++;
+  });
+  const agentsSorted = Object.entries(agentMap).sort((a,b)=>b[1].caHFdp-a[1].caHFdp);
+  const topAgent = agentsSorted[0];
+  setEl('fact-top-agent', topAgent?.[0] || '—');
+  setEl('fact-top-agent-ca', topAgent ? Math.round(topAgent[1].caHFdp*0.20).toLocaleString('fr-FR')+' € comm.' : '—');
+
+  // CA par agent
+  const agentList = document.getElementById('fact-agents-list');
+  const maxCA = agentsSorted[0]?.[1].ca || 1;
+  if(agentList && !isAgent) {
+    const cnt = document.getElementById('fact-agents-count');
+    if(cnt) cnt.textContent = agentsSorted.length+' agents';
+    agentList.innerHTML = agentsSorted.length > 0 ? agentsSorted.map(([nom, d], i) => {
+      const pct = totalHT > 0 ? Math.round(d.ca/totalHT*100) : 0;
+      const medals = ['🥇','🥈','🥉'];
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px">${medals[i]||''}</span>
+            <span style="font-weight:700;font-size:13.5px">${nom}</span>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:800;font-size:14px;color:var(--accent)">${d.ca.toLocaleString('fr-FR')} € HT</div>
+            <div style="font-size:11px;color:var(--muted)">${d.nb} cmd${d.nb>1?'s':''} · FdP : ${d.fdp}€ · ${pct}% du total</div>
+          </div>
+        </div>
+        <div class="progress"><div class="progress-bar" style="width:${Math.round(d.ca/maxCA*100)}%;background:var(--accent)"></div></div>
+      </div>`;
+    }).join('') : '<div style="text-align:center;color:var(--muted);padding:16px">Aucune donnée</div>';
+  }
+
+  // Commissions détaillées
+  const commList = document.getElementById('fact-commissions-list');
+  if(commList && !isAgent) {
+    commList.innerHTML = agentsSorted.length > 0 ? `
+      <div style="background:#f0fdf4;border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Commission totale équipe</div>
+            <div style="font-size:11px;color:var(--muted)">Base : ${totalHT.toLocaleString('fr-FR')} € − ${totalFdp.toLocaleString('fr-FR')} € FdP = ${totalHT_HFdp.toLocaleString('fr-FR')} € × 20%</div>
+          </div>
+          <div style="font-size:26px;font-weight:900;color:var(--accent2)">${totalCommission.toLocaleString('fr-FR')} €</div>
+        </div>
+        <div style="height:1px;background:#bbf7d0;margin:8px 0"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11.5px;text-align:center">
+          <div><div style="color:var(--muted);margin-bottom:2px">CA total HT</div><b>${totalHT.toLocaleString('fr-FR')} €</b></div>
+          <div><div style="color:var(--muted);margin-bottom:2px">Frais de port</div><b style="color:var(--warn)">− ${totalFdp.toLocaleString('fr-FR')} €</b></div>
+          <div><div style="color:var(--muted);margin-bottom:2px">Base commiss.</div><b style="color:var(--accent2)">${totalHT_HFdp.toLocaleString('fr-FR')} €</b></div>
+        </div>
+      </div>
+      ${agentsSorted.map(([nom, d]) => {
+        const comm = Math.round(d.caHFdp * 0.20);
+        return `<div style="padding:12px 14px;background:#f9fafb;border-radius:10px;margin-bottom:8px;border:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div style="font-weight:700;font-size:13.5px">${nom}</div>
+            <div style="font-size:18px;font-weight:900;color:var(--accent2)">${comm.toLocaleString('fr-FR')} €</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11.5px">
+            <div style="background:#fff;border-radius:7px;padding:6px 8px;border:1px solid var(--border)">
+              <div style="color:var(--muted);font-size:10px;margin-bottom:1px">CA HT</div>
+              <b>${d.ca.toLocaleString('fr-FR')} €</b>
+            </div>
+            <div style="background:#fff;border-radius:7px;padding:6px 8px;border:1px solid var(--border)">
+              <div style="color:var(--muted);font-size:10px;margin-bottom:1px">− Frais port</div>
+              <b style="color:var(--warn)">− ${d.fdp.toLocaleString('fr-FR')} €</b>
+            </div>
+            <div style="background:#f0fdf4;border-radius:7px;padding:6px 8px;border:1px solid #bbf7d0">
+              <div style="color:var(--muted);font-size:10px;margin-bottom:1px">Base × 20%</div>
+              <b style="color:var(--accent2)">${d.caHFdp.toLocaleString('fr-FR')} €</b>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}` : '<div style="text-align:center;color:var(--muted);padding:16px">Aucune donnée</div>';
+  }
+
+  // Tableau
+  const tbody = document.getElementById('fact-tbody');
+  if(tbody) tbody.innerHTML = filtered.length > 0 ? filtered.map(c => {
+    const fdp = calcFdp(c);
+    const htHFdp = Math.max(0, (c.ht||0) - fdp);
+    const tva = c.tva || Math.round(c.ht*0.20);
+    const ttc = c.ttc || Math.round(c.ht*1.20);
+    const pays = c.pays || 'France';
+    return `<tr style="cursor:pointer" onclick="imprimerCommande('${c.ref}')">
+      <td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">${c.ref}</span></td>
+      <td><div style="font-weight:600">${c.client}</div><div style="font-size:11px;color:var(--muted)">${pays}</div></td>
+      <td><span class="badge b-blue">${c.agent}</span></td>
+      <td style="color:var(--muted);font-size:12px">${c.date ? new Date(c.date).toLocaleDateString('fr-FR') : '—'}</td>
+      <td style="text-align:right;font-weight:700">${(c.ht||0).toLocaleString('fr-FR')} €</td>
+      <td style="text-align:right">
+        ${fdp > 0
+          ? `<span style="font-size:12px;color:var(--warn);font-weight:600">${fdp} €</span>`
+          : `<span class="badge b-green" style="font-size:10px">Offerts</span>`}
+      </td>
+      <td style="text-align:right;font-weight:700;color:var(--accent2)">${htHFdp.toLocaleString('fr-FR')} €</td>
+      <td style="text-align:right;font-weight:800;color:var(--accent)">${ttc.toLocaleString('fr-FR')} €</td>
+      <td><span class="badge b-green">Livrée</span></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">Aucune commande sur cette période</td></tr>';
+}
+
+function exportFactCSV() {
+  const data = factState.rawData || [];
+  const isAgent = currentUser?.id !== 'admin' && currentUser?.id !== 'master';
+  const filtered = isAgent ? data.filter(c=>c.agent_id===currentUser.id) : data;
+  let csv = "Reference;Client;Agent;Date;Montant HT;Frais port;Base commission;TVA;TTC\n";
+  filtered.forEach(c => {
+    const tva = c.tva || Math.round(c.ht*0.20);
+    const ttc = c.ttc || Math.round(c.ht*1.20);
+    const fdp = calcFdp(c);
+    csv += `${c.ref};${c.client};${c.agent};${c.date};${c.ht};${fdp};${Math.max(0,c.ht-fdp)};${tva};${ttc}
+`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'facturation-eyesgang-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
 
 /* ══════════════════════════════════════
    GESTION PRODUITS ADMIN
