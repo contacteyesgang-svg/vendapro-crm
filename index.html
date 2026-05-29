@@ -250,8 +250,8 @@ select.fi{cursor:pointer}
 .vcard{background:var(--card);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .18s;position:relative}
 .vcard:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(37,99,235,.12)}
 .vcard.selected{border:2px solid var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.vcard-img{width:100%;aspect-ratio:4/3;overflow:hidden;background:#f0f0f0;position:relative}
-.vcard-img img{width:100%;height:100%;object-fit:cover}
+.vcard-img{width:100%;aspect-ratio:4/3;overflow:hidden;background:#fff;position:relative}
+.vcard-img img{width:100%;height:100%;object-fit:contain;padding:8px}
 .vcard-lens{position:absolute;inset:0;pointer-events:none}
 .vcard-body{padding:9px 10px}
 .vcard-name{font-size:13px;font-weight:700;margin-bottom:1px}
@@ -2484,7 +2484,18 @@ function renderOrderVisual() {
     return `<div class="vcard" id="vcard-${m.id}" onclick="openCfgDrawer(${m.id})">
       ${totalQty>0?`<div class="vcard-in-cart">${totalQty} pcs</div>`:''}
         <div class="vcard-img">
-        <img id="vcard-img-${m.id}" src="${photo.url||'https://static.wixstatic.com/media/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png/v1/fill/w_300,h_225,al_c,q_85/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png'}" alt="${m.name}" loading="lazy" style="width:100%;height:100%;object-fit:${photo.url?'cover':'contain'};display:block;background:#f0f0f0;padding:${photo.url?'0':'10px'}">
+        <img id="vcard-img-${m.id}"
+          src="${photo.url || ''}"
+          alt="${m.name}"
+          loading="lazy"
+          style="width:100%;height:100%;object-fit:contain;padding:8px;display:block"
+          onerror="this.src='';this.style.display='none';this.parentElement.querySelector('.vcard-no-photo')?.style.setProperty('display','flex')"
+          onload="this.style.display='block';this.parentElement.querySelector('.vcard-no-photo')?.style.setProperty('display','none')"
+        >
+        <div class="vcard-no-photo" style="${photo.url?'display:none':'display:flex'};position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#ccc">
+          <i class="ti ti-eye-glasses" style="font-size:28px"></i>
+          <span style="font-size:10px">${m.name}</span>
+        </div>
       </div>
       <div class="vcard-body">
         <div class="vcard-name">${m.name}</div>
@@ -2606,10 +2617,11 @@ function dwRender() {
   // Photo
   const img = document.getElementById('dw-img');
   if(img) {
-    img.src = photo.url || 'https://static.wixstatic.com/media/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png/v1/fill/w_600,h_450,al_c,q_85/5da6e1_ea21b94d1b2c454a9a549d1b0cebb1c0~mv2.png';
-    img.style.objectFit = photo.url ? 'cover' : 'contain';
-    img.style.padding = photo.url ? '0' : '20px';
-    img.style.background = '#f8fafc';
+    img.src = photo.url || '';
+    img.style.objectFit = 'contain';
+    img.style.padding = '12px';
+    img.style.background = '#fff';
+    img.style.borderRadius = '10px';
   }
   // Badge teinte en bas de la photo (photo reste intacte)
   const lc = orderState.dwVerre>=0 ? (orderState.dwTrans ? VERRES_TRANS[orderState.dwVerre].c : VERRES_STD[orderState.dwVerre].c) : null;
@@ -4241,4 +4253,3 @@ function submitCommande(){
 </script>
 </body>
 </html>
-                                                      
