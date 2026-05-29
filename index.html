@@ -1204,10 +1204,8 @@ function syncLocalData() {
   // Re-render après chargement Supabase
   renderClients();
   renderDashboard();
-  // Forcer le re-render du catalogue avec les vrais modèles
-  if(currentPage === 'catalogue') {
-    renderCatalogue();
-  }
+  // Toujours re-render le catalogue avec les vrais modèles
+  renderCatalogue();
   console.log('✅ Données Supabase synchronisées — Modèles:', MODELS.length, '| Clients:', CLIENTS_DB.length);
 }
 
@@ -1457,7 +1455,11 @@ function nav(page,el){
   if(page==='facturation') { setTimeout(()=>{ factFilter('mois', document.getElementById('fp-mois')); factLoadData(); }, 100); }
   if(page==='produits-admin') setTimeout(renderProduitsAdmin,100);
   if(page==='stocks') setTimeout(updateStockUI,100);
-  if(page==='catalogue') setTimeout(()=>{ renderCatalogue(); },100);
+  if(page==='catalogue') {
+    setTimeout(()=>{ renderCatalogue(); }, 200);
+    // Si Supabase pas encore chargé, réessayer
+    if(MODELS.length === 0) setTimeout(()=>{ renderCatalogue(); }, 2000);
+  }
   if(page==='commandes') updateCmdBadges();
   // Scroll top
   document.querySelector('.content')?.scrollTo(0,0);
@@ -2430,6 +2432,21 @@ function getFilteredModels() {
 /* ── RENDU VISUEL (grille style Pepperi) ── */
 function renderOrderVisual() {
   const grid = document.getElementById('visual-grid'); if(!grid) return;
+  // Si MODELS vide mais Supabase a chargé → re-sync
+  if(MODELS.length === 0 && DB.modeles.length > 0) {
+    syncLocalData();
+  }
+  // Si toujours vide et pas encore chargé → afficher un spinner
+  if(MODELS.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">⏳</div>
+      <div style="font-weight:600;margin-bottom:6px">Chargement des produits...</div>
+      <div style="font-size:12px">Connexion à Supabase en cours</div>
+    </div>`;
+    // Réessayer dans 1 seconde
+    setTimeout(renderOrderVisual, 1000);
+    return;
+  }
   const models = getFilteredModels();
   grid.innerHTML = models.map(m => {
     const cartItems = orderState.panier.filter(p => p.modelId === m.id);
