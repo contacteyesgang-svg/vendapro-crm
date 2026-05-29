@@ -1380,7 +1380,7 @@ const VERRES_TRANS=[
 ];
 
 const PAGE_TITLES={
-  dashboard:'Tableau de bord',clients:'Clients',pipeline:'Pipeline commercial',
+  dashboard:'Tableau de bord',clients:'Clients',facturation:'Facturation & CA',
   commandes:'Commandes',catalogue:'Catalogue & Ventes',stocks:'Stocks & Inventaire',
   'stats-produits':'Statistiques produits','stats-clients':'Statistiques clients',
   admin:'Administration & Finance','produits-admin':'Gestion des produits',equipe:'Équipe & Droits'
@@ -1421,7 +1421,7 @@ async function doLogin(){
     buildNav();
     renderDashboard();
     renderClients();
-    renderPipeline();
+    // renderPipeline supprimé → Facturation
     renderEquipe();
     renderCatalogue();
     renderDashChart();
@@ -1457,7 +1457,7 @@ function buildNav(){
     <div class="ni active" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Tableau de bord</div>`;
     if(u.perms.voir_tous||u.id==='master')
       h+=`<div class="ni" onclick="nav('clients',this)"><i class="ti ti-users"></i>Clients</div>
-      <div class="ni" onclick="nav('pipeline',this)"><i class="ti ti-route"></i>Pipeline</div>`;
+      <div class="ni" onclick="nav('facturation',this)"><i class="ti ti-receipt"></i>Facturation</div>`;
     else
       h+=`<div class="ni" onclick="nav('clients',this)"><i class="ti ti-users"></i>Mes clients</div>`;
   }
