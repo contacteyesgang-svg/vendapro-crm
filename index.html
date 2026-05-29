@@ -2042,22 +2042,33 @@ function genFacture(cmdId, client, lines) {
   const clientData = CLIENTS_DB.find(c=>c.nom===client);
   const clientFull = clientData ? CLIENTS_FULL[clientData.id] : null;
 
-  const linesHtml = lines.map(l => {
-    const isManq = l.qtyManq > 0 && l.qtyLivre === 0;
-    const isPartiel = l.qtyManq > 0 && l.qtyLivre > 0;
-    const totalLigne = l.prix * l.qtyLivre;
-    return `<tr style="${isManq?'opacity:.5':''}">
-      <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0">
-        <div style="font-weight:600">${l.model} — ${l.coloris}</div>
-        <div style="font-size:11px;color:#64748b">${l.verre||'Sans teinte'}</div>
-        ${isManq?'<div style="font-size:10px;color:#dc2626;font-weight:600;margin-top:2px">NON LIVRÉ — Voir reliquat</div>':''}
-        ${isPartiel?'<div style="font-size:10px;color:#d97706;font-weight:600;margin-top:2px">Livraison partielle — Reliquat : '+l.qtyManq+' pcs</div>':''}
-      </td>
-      <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;color:${isManq?'#dc2626':'#0f172a'}">${l.qtyLivre}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b">${l.prix} €</td>
-      <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:600">${totalLigne > 0 ? totalLigne.toLocaleString('fr-FR')+' €' : '—'}</td>
-    </tr>`;
-  }).join('');
+  // Séparer optique et solaire
+  function buildLignesSection(lignes, titre, couleur) {
+    if(!lignes.length) return '';
+    const rows = lignes.map(l => {
+      const isManq = l.qtyManq > 0 && l.qtyLivre === 0;
+      const isPartiel = l.qtyManq > 0 && l.qtyLivre > 0;
+      const totalLigne = l.prix * l.qtyLivre;
+      return `<tr style="${isManq?'opacity:.55':''}">
+        <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0">
+          <div style="font-weight:600">${l.model||l.nom||'—'}</div>
+          <div style="font-size:11px;color:#64748b">${l.verre||'Sans teinte'}</div>
+          ${isManq?'<div style="font-size:10px;color:#dc2626;font-weight:600;margin-top:2px">NON LIVRÉ — Voir reliquat</div>':''}
+          ${isPartiel?'<div style="font-size:10px;color:#d97706;font-weight:600;margin-top:2px">Partiel — Reliquat : '+l.qtyManq+' pcs</div>':''}
+        </td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;color:${isManq?'#dc2626':'#0f172a'}">${l.qtyLivre}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b">${l.prix} €</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:600">${totalLigne > 0 ? totalLigne.toLocaleString('fr-FR')+' €' : '—'}</td>
+      </tr>`;
+    }).join('');
+    const sous = lignes.reduce((s,l)=>s+l.prix*(l.qtyLivre||0),0);
+    return `<tr><td colspan="4" style="padding:8px 14px;background:${couleur};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#475569">${titre} — ${lignes.length} réf. — ${lignes.reduce((s,l)=>s+(l.qtyLivre||0),0)} pcs</td></tr>
+    ${rows}
+    <tr><td colspan="3" style="padding:6px 14px;font-size:11.5px;color:#64748b;text-align:right;font-style:italic">Sous-total ${titre}</td><td style="padding:6px 14px;text-align:right;font-weight:700;font-size:12px">${sous.toLocaleString('fr-FR')} €</td></tr>`;
+  }
+  const optLines = lines.filter(l => {const m=MODELS.find(x=>x.name===(l.model||l.nom));return !m||m.forme!=='Solaire';});
+  const solLines = lines.filter(l => {const m=MODELS.find(x=>x.name===(l.model||l.nom));return m&&m.forme==='Solaire';});
+  const linesHtml = buildLignesSection(optLines,'Lunettes optiques','#f0f9ff') + buildLignesSection(solLines,'Lunettes solaires','#fffbeb');
 
   const totalHT = lines.reduce((s,l) => s + l.prix*l.qtyLivre, 0);
   const tva = Math.round(totalHT*0.20*100)/100;
@@ -2546,18 +2557,18 @@ function catOuvrirProduit(prodId) {
   const verresTrans = DB.teintes.filter(t => t.type === 'transition');
 
   if(stdEl) stdEl.innerHTML = verresStd.map(t => `
-    <label style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid var(--border);cursor:pointer;background:var(--card);font-size:12px" onclick="catUpdateTotal()">
-      <input type="radio" name="tm-verre" value="${t.id}|0|${t.nom}" onchange="catUpdateTotal()" style="margin:0">
-      <div style="width:14px;height:14px;border-radius:50%;background:${t.couleur_css||'#888'};border:1px solid rgba(0,0,0,.1);flex-shrink:0"></div>
-      <span>${t.nom}</span>
+    <label style="display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;font-size:12.5px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <input type="radio" name="tm-verre" value="${t.id}|0|${t.nom}" onchange="catUpdateTotal()" style="margin:0;accent-color:var(--accent)">
+      <div style="width:22px;height:22px;border-radius:50%;background:${t.couleur_css||'#888'};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div>
+      <span style="font-weight:500">${t.nom.replace('#','')}</span>
       <span class="badge b-green" style="margin-left:auto;font-size:10px">Offerte</span>
     </label>`).join('');
 
   if(transEl) transEl.innerHTML = verresTrans.map(t => `
-    <label style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid var(--border);cursor:pointer;background:var(--card);font-size:12px" onclick="catUpdateTotal()">
-      <input type="radio" name="tm-verre" value="${t.id}|10|${t.nom}" onchange="catUpdateTotal()" style="margin:0">
-      <div style="width:14px;height:14px;border-radius:50%;background:${t.couleur_css||'#888'};border:1px solid rgba(0,0,0,.1);flex-shrink:0"></div>
-      <span>${t.nom}</span>
+    <label style="display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;font-size:12.5px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--warn)'" onmouseout="this.style.borderColor='var(--border)'">
+      <input type="radio" name="tm-verre" value="${t.id}|10|${t.nom}" onchange="catUpdateTotal()" style="margin:0;accent-color:var(--warn)">
+      <div style="width:22px;height:22px;border-radius:50%;background:${t.couleur_css||'#888'};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div>
+      <span style="font-weight:500">${t.nom.replace('#','')}</span>
       <span class="badge b-orange" style="margin-left:auto;font-size:10px">+10 €</span>
     </label>`).join('');
 
