@@ -754,9 +754,15 @@ select.fi{cursor:pointer}
             <button class="btn btn-xs" onclick="catFermerTeinte()"><i class="ti ti-x"></i></button>
           </div>
           <div style="padding:18px 22px">
-            <!-- Photo produit -->
-            <div style="background:#f8fafc;border-radius:12px;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center">
-              <img id="tm-photo" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;padding:12px">
+            <!-- Photo produit avec overlay teinte -->
+            <div style="background:#fff;border-radius:12px;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+              <img id="tm-photo" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;padding:8px;display:block;position:relative;z-index:1">
+              <!-- Overlay couleur verres — mix-blend-mode:multiply colore les verres sans toucher la monture sombre -->
+              <div id="tm-overlay" style="position:absolute;inset:0;z-index:2;mix-blend-mode:multiply;border-radius:12px;opacity:0;transition:opacity .3s,background .2s;pointer-events:none"></div>
+              <div id="tm-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#ccc;position:absolute;inset:0">
+                <i class="ti ti-eye-glasses" style="font-size:40px"></i>
+                <span style="font-size:12px;color:#aaa" id="tm-no-photo-nom"></span>
+              </div>
             </div>
             <!-- Quantité -->
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
@@ -2537,10 +2543,23 @@ function catOuvrirProduit(prodId) {
   document.getElementById('tm-nom').textContent = p.nom;
   document.getElementById('tm-prix').textContent = (p.prix_vente||0)+' € HT / paire';
   const photo = document.getElementById('tm-photo');
+  const noPhoto = document.getElementById('tm-no-photo');
+  const noPhotoNom = document.getElementById('tm-no-photo-nom');
   if(photo) {
-    photo.src = p.photo_url || '';
-    photo.style.display = p.photo_url ? 'block' : 'none';
+    if(p.photo_url) {
+      photo.src = p.photo_url;
+      photo.style.display = 'block';
+      if(noPhoto) noPhoto.style.display = 'none';
+    } else {
+      photo.src = '';
+      photo.style.display = 'none';
+      if(noPhoto) noPhoto.style.display = 'flex';
+      if(noPhotoNom) noPhotoNom.textContent = p.nom;
+    }
   }
+  // Reset overlay
+  const overlay = document.getElementById('tm-overlay');
+  if(overlay) { overlay.style.opacity = '0'; overlay.style.background = 'transparent'; }
 
   // Remettre qty à 12 par défaut ou qty existante
   const existing = catState.panier.find(x => x.id === p.id);
@@ -2590,6 +2609,22 @@ function catUpdateTotal() {
   const ttc = document.getElementById('tm-total-ttc');
   if(ht) ht.textContent = total.toLocaleString('fr-FR')+' €';
   if(ttc) ttc.textContent = Math.round(total*1.20).toLocaleString('fr-FR')+' €';
+
+  // Appliquer la couleur du verre sur la photo via overlay blend
+  const overlay = document.getElementById('tm-overlay');
+  if(!overlay) return;
+  const verreParts = radio?.value ? radio.value.split('|') : null;
+  if(!verreParts || !verreParts[0]) {
+    // Sans teinte → pas d'overlay
+    overlay.style.opacity = '0';
+    overlay.style.background = 'transparent';
+    return;
+  }
+  // Trouver la couleur de la teinte dans DB
+  const teinte = DB.teintes.find(t => String(t.id) === verreParts[0]);
+  const couleur = teinte?.couleur_css || '#888';
+  overlay.style.background = couleur;
+  overlay.style.opacity = '0.65'; // Opacité pour effet naturel
 }
 
 function catQtyChange(delta) {
