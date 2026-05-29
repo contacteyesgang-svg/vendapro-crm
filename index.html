@@ -755,13 +755,9 @@ select.fi{cursor:pointer}
           </div>
           <div style="padding:18px 22px">
             <!-- Photo produit avec overlay teinte -->
-            <!-- Conteneur transparent = l'overlay ne colore QUE les pixels réels de l'image PNG -->
-            <div style="background:transparent;border-radius:12px;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);isolation:isolate">
-              <!-- Fond blanc affiché DERRIÈRE via un élément séparé hors du contexte isolé -->
-              <div style="position:absolute;inset:0;background:#fff;z-index:0;border-radius:12px"></div>
-              <img id="tm-photo" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;padding:8px;display:block;position:relative;z-index:1">
-              <!-- Overlay: mix-blend-mode:multiply sur pixels image uniquement -->
-              <div id="tm-overlay" style="position:absolute;inset:0;z-index:2;mix-blend-mode:multiply;border-radius:12px;opacity:0;transition:opacity .25s;pointer-events:none"></div>
+            <div style="background:#fff;border-radius:12px;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+              <img id="tm-photo" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;padding:8px;display:block">
+              <canvas id="tm-canvas" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none;pointer-events:none"></canvas>
               <div id="tm-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#ccc;position:absolute;inset:0">
                 <i class="ti ti-eye-glasses" style="font-size:40px"></i>
                 <span style="font-size:12px;color:#aaa" id="tm-no-photo-nom"></span>
@@ -2560,9 +2556,10 @@ function catOuvrirProduit(prodId) {
       if(noPhotoNom) noPhotoNom.textContent = p.nom;
     }
   }
-  // Reset overlay
-  const overlay = document.getElementById('tm-overlay');
-  if(overlay) { overlay.style.opacity = '0'; overlay.style.background = 'transparent'; }
+  // Reset canvas + photo
+  _originalPhotoSrc = p.photo_url || '';
+  const canvas = document.getElementById('tm-canvas');
+  if(canvas) canvas.style.display = 'none';
 
   // Remettre qty à 12 par défaut ou qty existante
   const existing = catState.panier.find(x => x.id === p.id);
@@ -2613,27 +2610,124 @@ function catUpdateTotal() {
   if(ht) ht.textContent = total.toLocaleString('fr-FR')+' €';
   if(ttc) ttc.textContent = Math.round(total*1.20).toLocaleString('fr-FR')+' €';
 
-  // Appliquer la couleur du verre sur la photo via overlay blend
-  const overlay = document.getElementById('tm-overlay');
-  if(!overlay) return;
+  // Appliquer la teinte via Canvas + flood-fill
+  const parts = radio?.value ? radio.value.split('|') : [];
+  const couleurCSS = parts[3] ? decodeURIComponent(parts[3]) : null;
+  applyLensTint(couleurCSS);
+}
 
-  if(!radio?.value) {
-    overlay.style.opacity = '0';
+// Stocker l'URL originale de la photo
+let _originalPhotoSrc = '';
+
+async function applyLensTint(cssColor) {
+  const img = document.getElementById('tm-photo');
+  const canvas = document.getElementById('tm-canvas');
+  if(!img || !canvas) return;
+
+  // Sans teinte → restaurer photo originale
+  if(!cssColor) {
+    canvas.style.display = 'none';
+    if(_originalPhotoSrc) img.src = _originalPhotoSrc;
     return;
   }
+  if(!img.src || img.src === window.location.href) return;
 
-  const parts = radio.value.split('|');
-  if(!parts[0]) {
-    // Sans teinte
-    overlay.style.opacity = '0';
-    overlay.style.background = 'transparent';
-    return;
+  // Sauvegarder l'URL originale
+  if(!_originalPhotoSrc || _originalPhotoSrc !== img.src) {
+    _originalPhotoSrc = img.src;
   }
 
-  // La couleur est encodée directement dans la valeur du radio (index 3)
-  const couleur = parts[3] ? decodeURIComponent(parts[3]) : '#F4874B';
-  overlay.style.background = couleur;
-  overlay.style.opacity = '0.7';
+  try {
+    // Charger l'image avec CORS
+    const tmpImg = new Image();
+    tmpImg.crossOrigin = 'anonymous';
+    await new Promise((res, rej) => {
+      tmpImg.onload = res;
+      tmpImg.onerror = rej;
+      tmpImg.src = _originalPhotoSrc + ((_originalPhotoSrc.includes('?')) ? '&' : '?') + 'cors=' + Date.now();
+    });
+
+    const W = tmpImg.naturalWidth, H = tmpImg.naturalHeight;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(tmpImg, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, W, H);
+    const d = imageData.data;
+
+    // Parser la couleur CSS → RGB
+    const tmp = document.createElement('canvas');
+    tmp.width = tmp.height = 1;
+    const tc = tmp.getContext('2d');
+    tc.fillStyle = cssColor;
+    tc.fillRect(0, 0, 1, 1);
+    const cd = tc.getImageData(0, 0, 1, 1).data;
+    const [cr, cg, cb] = [cd[0], cd[1], cd[2]];
+
+    // Flood-fill depuis les bords pour marquer le FOND
+    const isBackground = new Uint8Array(W * H);
+    const queue = [];
+    for(let x = 0; x < W; x++) { queue.push(x, 0); queue.push(x, H-1); }
+    for(let y = 1; y < H-1; y++) { queue.push(0, y); queue.push(W-1, y); }
+
+    while(queue.length > 0) {
+      const y = queue.pop(), x = queue.pop();
+      if(x < 0 || x >= W || y < 0 || y >= H) continue;
+      const idx = y * W + x;
+      if(isBackground[idx]) continue;
+      const pi = idx * 4;
+      const a = d[pi+3];
+      const bright = (d[pi] + d[pi+1] + d[pi+2]) / 3;
+      // Fond = transparent OU pixel très clair (blanc >220)
+      if(a < 20 || bright > 220) {
+        isBackground[idx] = 1;
+        queue.push(x-1, y, x+1, y, x, y-1, x, y+1);
+      }
+    }
+
+    // Appliquer la teinte uniquement sur les pixels clairs NON-fond (= verres)
+    for(let i = 0; i < W * H; i++) {
+      if(isBackground[i]) continue;
+      const pi = i * 4;
+      if(d[pi+3] < 50) continue;
+      const bright = (d[pi] + d[pi+1] + d[pi+2]) / 3;
+      if(bright > 140) { // Pixels clairs = verres
+        d[pi]   = Math.round(d[pi]   * cr / 255);
+        d[pi+1] = Math.round(d[pi+1] * cg / 255);
+        d[pi+2] = Math.round(d[pi+2] * cb / 255);
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    // Afficher le canvas par-dessus la photo
+    canvas.style.display = 'block';
+    canvas.style.position = 'absolute';
+    canvas.style.inset = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.objectFit = 'contain';
+    canvas.style.padding = '8px';
+
+  } catch(e) {
+    // CORS échoué → fallback overlay simple
+    console.warn('Canvas tint CORS error, fallback:', e.message);
+    canvas.style.display = 'none';
+    catFallbackTint(cssColor);
+  }
+}
+
+// Fallback si CORS bloqué
+function catFallbackTint(cssColor) {
+  const img = document.getElementById('tm-photo');
+  if(!img) return;
+  // Créer un filtre CSS approximatif selon la teinte
+  img.style.filter = 'brightness(0.95)';
+  // Montrer un badge de couleur sous la photo
+  const badge = document.getElementById('tm-tint-badge');
+  if(badge) {
+    badge.style.display = 'flex';
+    badge.style.background = cssColor;
+  }
 }
 
 function catQtyChange(delta) {
