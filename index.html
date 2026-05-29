@@ -2481,31 +2481,26 @@ function renderOrderVisual() {
     const totalQty = cartItems.reduce((s,p)=>s+p.qty,0);
     const photo = m.photos[0];
     const swatches = m.photos.map((p,i) => `<div class="vcard-sw${i===0?' a':''}" title="${p.coloris}" onclick="event.stopPropagation();vcardSetColoris(${m.id},${i},this)"><img src="${p.url}" loading="lazy"></div>`).join('');
-    return `<div class="vcard" id="vcard-${m.id}" onclick="openCfgDrawer(${m.id})">
+    const mid = String(m.id);
+    return `<div class="vcard" id="vcard-${mid}" onclick="openCfgDrawer('${mid}')">
       ${totalQty>0?`<div class="vcard-in-cart">${totalQty} pcs</div>`:''}
-        <div class="vcard-img">
-        <img id="vcard-img-${m.id}"
-          src="${photo.url || ''}"
-          alt="${m.name}"
-          loading="lazy"
-          style="width:100%;height:100%;object-fit:contain;padding:8px;display:block"
-          onerror="this.src='';this.style.display='none';this.parentElement.querySelector('.vcard-no-photo')?.style.setProperty('display','flex')"
-          onload="this.style.display='block';this.parentElement.querySelector('.vcard-no-photo')?.style.setProperty('display','none')"
-        >
-        <div class="vcard-no-photo" style="${photo.url?'display:none':'display:flex'};position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#ccc">
-          <i class="ti ti-eye-glasses" style="font-size:28px"></i>
-          <span style="font-size:10px">${m.name}</span>
-        </div>
+      <div class="vcard-img">
+        ${photo.url
+          ? `<img id="vcard-img-${mid}" src="${photo.url}" alt="${m.name}" loading="lazy" style="width:100%;height:100%;object-fit:contain;padding:8px">`
+          : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#ccc">
+               <i class="ti ti-eye-glasses" style="font-size:30px"></i>
+               <span style="font-size:10px;text-align:center;padding:0 8px;color:#aaa">${m.name}</span>
+             </div>`
+        }
       </div>
       <div class="vcard-body">
         <div class="vcard-name">${m.name}</div>
-        <div class="vcard-sub">${m.ref} · ${m.forme}</div>
-        <div class="vcard-swatches" id="vcard-sw-${m.id}">${swatches}</div>
+        <div class="vcard-sub">${m.ref||''} · ${m.forme||''}</div>
         <div class="vcard-qty" onclick="event.stopPropagation()">
-          <button class="vq-btn" onclick="vcardQtyChange(${m.id},-1)">−</button>
-          <input class="vq-inp" type="number" id="vcard-qty-${m.id}" value="0" min="0" oninput="vcardQtyInput(${m.id},this.value)">
-          <button class="vq-btn" onclick="vcardQtyChange(${m.id},1)">+</button>
-          <span class="vcard-price">${m.prix} €</span>
+          <button class="vq-btn" onclick="vcardQtyChange('${mid}',-1)">−</button>
+          <input class="vq-inp" type="number" id="vcard-qty-${mid}" value="0" min="0" oninput="vcardQtyInput('${mid}',this.value)">
+          <button class="vq-btn" onclick="vcardQtyChange('${mid}',1)">+</button>
+          <span class="vcard-price">${m.prix} € HT</span>
         </div>
       </div>
     </div>`;
@@ -2530,11 +2525,13 @@ function vcardSetColoris(modelId, idx, swEl) {
 }
 
 function vcardQtyChange(modelId, delta) {
+  modelId = String(modelId);
   const inp = document.getElementById('vcard-qty-'+modelId); if(!inp) return;
   inp.value = Math.max(0, (parseInt(inp.value)||0) + delta);
   vcardQtyInput(modelId, inp.value);
 }
 function vcardQtyInput(modelId, val) {
+  modelId = String(modelId);
   const qty = Math.max(0, parseInt(val)||0);
   const card = document.getElementById('vcard-'+modelId);
   if(card) {
