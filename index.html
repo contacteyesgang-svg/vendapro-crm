@@ -741,8 +741,8 @@ select.fi{cursor:pointer}
                 <span id="dw-badge-label" style="font-size:11px;color:#fff;font-weight:500"></span>
               </div>
             </div>
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px">Coloris monture</div>
-            <div class="csw-row" id="dw-coloris" style="margin-bottom:12px"></div>
+            <!-- Pas de sélection coloris — le produit inclut déjà le coloris dans son nom -->
+            <div id="dw-coloris" style="display:none"></div>
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">36 teintes standard — <span style="color:var(--accent2);text-transform:none;font-weight:500">Offertes avec monture</span></div>
             <div class="tg" id="dw-std" style="margin-bottom:10px"></div>
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">4 teintes transition — <span style="color:var(--warn);text-transform:none;font-weight:500">+10 € / paire</span></div>
@@ -1631,13 +1631,15 @@ function openFicheClient(id){
   const initials=c.nom.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('cf-av').textContent=initials;
   document.getElementById('cf-nom').textContent=c.nom;
-  document.getElementById('cf-ville-agent').textContent=c.ville+' · '+USERS_DB.find(u=>u.id===c.agent)?.name||'';
-  document.getElementById('cf-entreprise').textContent=c.nom;
-  document.getElementById('cf-juridique').textContent=f.juridique;
-  document.getElementById('cf-contact').textContent=c.contact;
-  document.getElementById('cf-poste').textContent=f.poste;
-  document.getElementById('cf-email').textContent=f.email;
-  document.getElementById('cf-tel').textContent=f.tel;
+  const agentName = USERS_DB.find(u=>u.id===c.agent||u.email===c.agent_email)?.name || c.agent || '—';
+  const setTxt = (id,val) => { const e=document.getElementById(id); if(e) e.textContent=val||'—'; };
+  setTxt('cf-ville-agent', (c.ville||c.code_postal||'')+(agentName?' · '+agentName:''));
+  setTxt('cf-entreprise', c.nom);
+  setTxt('cf-juridique', c.forme_juridique||f.juridique||'—');
+  setTxt('cf-contact', c.contact_nom||c.contact||'—');
+  setTxt('cf-poste', c.contact_poste||f.poste||'—');
+  setTxt('cf-email', c.email||f.email||'—');
+  setTxt('cf-tel', c.telephone||f.tel||'—');
   document.getElementById('cf-adresse').textContent=f.adresse;
   document.getElementById('cf-cp').textContent=f.cp;
   document.getElementById('cf-villef').textContent=f.ville;
@@ -1717,10 +1719,21 @@ function lancerCommandeClient(){
   lancerCommandeClientId(currentClientFiche.id);
 }
 function lancerCommandeClientId(clientId){
-  const el=document.getElementById('order-client');
-  if(el)el.value=clientId;
-  orderSelectClient(clientId);
-  nav('catalogue',document.querySelector('.ni[onclick*="catalogue"]'));
+  // Fermer la fiche client si ouverte
+  document.getElementById('client-fiche')?.classList.remove('open');
+  // Naviguer vers catalogue
+  nav('catalogue', document.querySelector('.ni[onclick*="catalogue"]'));
+  // Attendre que la page soit visible puis sélectionner le client
+  setTimeout(()=>{
+    const el = document.getElementById('order-client');
+    if(el){
+      el.value = String(clientId);
+      // Déclencher l'événement change
+      el.dispatchEvent(new Event('change'));
+    }
+    orderSelectClient(String(clientId));
+    showNotif('Client sélectionné — ajoutez des produits au panier','info');
+  }, 150);
 }
 
 /* ── PIPELINE ── */
@@ -2598,10 +2611,7 @@ function dwRender() {
       badge.style.display = 'none';
     }
   }
-  // Coloris monture
-  document.getElementById('dw-coloris').innerHTML = m.photos.map((p,i)=>
-    `<div class="csw${i===idx?' act':''}" onclick="dwSetMonture(${i})" title="${p.coloris}"><img src="${p.url}" loading="lazy"><div class="tip">${p.coloris}</div></div>`
-  ).join('');
+  // Pas de sélection coloris — un produit = modèle + coloris dans le nom
   // Teintes standard 36
   document.getElementById('dw-std').innerHTML = VERRES_STD.map((v,i)=>
     `<div class="td${!orderState.dwTrans&&i===orderState.dwVerre?' a':''}" style="background:${v.c}" onclick="dwSetVerre(${i},false)"><div class="tt">${v.n}</div></div>`
