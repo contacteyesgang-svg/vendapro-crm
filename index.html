@@ -755,7 +755,7 @@ select.fi{cursor:pointer}
           </div>
           <div style="padding:18px 22px">
             <!-- Photo produit avec overlay teinte -->
-            <div style="background:#fff;border-radius:12px;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+            <div style="background:#fff;border-radius:12px;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);isolation:isolate">
               <img id="tm-photo" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;padding:8px;display:block;position:relative;z-index:1">
               <!-- Overlay couleur verres — mix-blend-mode:multiply colore les verres sans toucher la monture sombre -->
               <div id="tm-overlay" style="position:absolute;inset:0;z-index:2;mix-blend-mode:multiply;border-radius:12px;opacity:0;transition:opacity .3s,background .2s;pointer-events:none"></div>
@@ -2577,7 +2577,7 @@ function catOuvrirProduit(prodId) {
 
   if(stdEl) stdEl.innerHTML = verresStd.map(t => `
     <label style="display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;font-size:12.5px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-      <input type="radio" name="tm-verre" value="${t.id}|0|${t.nom}" onchange="catUpdateTotal()" style="margin:0;accent-color:var(--accent)">
+      <input type="radio" name="tm-verre" value="${t.id}|0|${t.nom}|${encodeURIComponent(t.couleur_css||'#888')}" onchange="catUpdateTotal()" style="margin:0;accent-color:var(--accent)">
       <div style="width:22px;height:22px;border-radius:50%;background:${t.couleur_css||'#888'};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div>
       <span style="font-weight:500">${t.nom.replace('#','')}</span>
       <span class="badge b-green" style="margin-left:auto;font-size:10px">Offerte</span>
@@ -2585,7 +2585,7 @@ function catOuvrirProduit(prodId) {
 
   if(transEl) transEl.innerHTML = verresTrans.map(t => `
     <label style="display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;font-size:12.5px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--warn)'" onmouseout="this.style.borderColor='var(--border)'">
-      <input type="radio" name="tm-verre" value="${t.id}|10|${t.nom}" onchange="catUpdateTotal()" style="margin:0;accent-color:var(--warn)">
+      <input type="radio" name="tm-verre" value="${t.id}|10|${t.nom}|${encodeURIComponent(t.couleur_css||'#888')}" onchange="catUpdateTotal()" style="margin:0;accent-color:var(--warn)">
       <div style="width:22px;height:22px;border-radius:50%;background:${t.couleur_css||'#888'};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div>
       <span style="font-weight:500">${t.nom.replace('#','')}</span>
       <span class="badge b-orange" style="margin-left:auto;font-size:10px">+10 €</span>
@@ -2613,18 +2613,24 @@ function catUpdateTotal() {
   // Appliquer la couleur du verre sur la photo via overlay blend
   const overlay = document.getElementById('tm-overlay');
   if(!overlay) return;
-  const verreParts = radio?.value ? radio.value.split('|') : null;
-  if(!verreParts || !verreParts[0]) {
-    // Sans teinte → pas d'overlay
+
+  if(!radio?.value) {
+    overlay.style.opacity = '0';
+    return;
+  }
+
+  const parts = radio.value.split('|');
+  if(!parts[0]) {
+    // Sans teinte
     overlay.style.opacity = '0';
     overlay.style.background = 'transparent';
     return;
   }
-  // Trouver la couleur de la teinte dans DB
-  const teinte = DB.teintes.find(t => String(t.id) === verreParts[0]);
-  const couleur = teinte?.couleur_css || '#888';
+
+  // La couleur est encodée directement dans la valeur du radio (index 3)
+  const couleur = parts[3] ? decodeURIComponent(parts[3]) : '#F4874B';
   overlay.style.background = couleur;
-  overlay.style.opacity = '0.65'; // Opacité pour effet naturel
+  overlay.style.opacity = '0.6';
 }
 
 function catQtyChange(delta) {
