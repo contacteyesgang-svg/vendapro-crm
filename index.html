@@ -1476,6 +1476,7 @@ function buildNav(){
   if(isAdmin){
     h+=`<div class="sb-sec">Administration</div>
     <div class="ni" onclick="nav('admin',this)"><i class="ti ti-shield-lock"></i>Admin & Finance</div>
+    <div class="ni" onclick="nav('produits-admin',this)"><i class="ti ti-tags"></i>Gestion produits</div>
     <div class="ni" onclick="nav('equipe',this)"><i class="ti ti-settings"></i>Équipe & Droits</div>`;
   } else if(u.id==='master'){
     h+=`<div class="sb-sec">Gestion</div>
