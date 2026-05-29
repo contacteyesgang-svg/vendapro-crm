@@ -1201,10 +1201,13 @@ function syncLocalData() {
     }
   }
 
-  // Re-render
+  // Re-render après chargement Supabase
   renderClients();
-  renderCatalogue();
   renderDashboard();
+  // Forcer le re-render du catalogue avec les vrais modèles
+  if(currentPage === 'catalogue') {
+    renderCatalogue();
+  }
   console.log('✅ Données Supabase synchronisées — Modèles:', MODELS.length, '| Clients:', CLIENTS_DB.length);
 }
 
@@ -1307,57 +1310,8 @@ const PIPELINE_DB=[
   {etape:'Gagné ✓',deals:[{nom:'Optic 2000 France',client:'Optic 2000',mt:48600,pct:100}]},
 ];
 
-const MODELS=[
-  {id:1,name:'KAZUKI',ref:'PAW-KAZ',forme:'Optique',prix:59,
-   photos:[
-     {coloris:'Ghost',url:'https://static.wixstatic.com/media/5da6e1_f0e84b8f6e08480abd093d41866ab681~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_f0e84b8f6e08480abd093d41866ab681~mv2.jpg'},
-     {coloris:'Topaz',url:'https://static.wixstatic.com/media/5da6e1_30b25e7a2ea54a159f2a64e7fd49b871~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_30b25e7a2ea54a159f2a64e7fd49b871~mv2.jpg'},
-     {coloris:'Black Pump',url:'https://static.wixstatic.com/media/5da6e1_2c1033425ace4e6594efee0110659657~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_2c1033425ace4e6594efee0110659657~mv2.jpg'},
-   ]},
-  {id:2,name:'SAKURA',ref:'PAW-SAK',forme:'Optique',prix:49,
-   photos:[
-     {coloris:'Crystal Green',url:'https://static.wixstatic.com/media/5da6e1_49c418d9dee14d6aa600c56ad747c843~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_49c418d9dee14d6aa600c56ad747c843~mv2.jpg'},
-     {coloris:'Tortoise',url:'https://static.wixstatic.com/media/5da6e1_d0dd7f217af349899176c2315c5635ef~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_d0dd7f217af349899176c2315c5635ef~mv2.jpg'},
-     {coloris:'Black Pump',url:'https://static.wixstatic.com/media/5da6e1_b8cbf81bb8bd442a9c5da317e2825a0d~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_b8cbf81bb8bd442a9c5da317e2825a0d~mv2.jpg'},
-   ]},
-  {id:3,name:'KOORI',ref:'PAW-KOO',forme:'Optique',prix:49,
-   photos:[
-     {coloris:'Tortoise',url:'https://static.wixstatic.com/media/5da6e1_a60e632935234c95a004fbd0ec53ac50~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_a60e632935234c95a004fbd0ec53ac50~mv2.jpg'},
-     {coloris:'Storm',url:'https://static.wixstatic.com/media/5da6e1_67d0fa7dbb06489da9486c6e59136391~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_67d0fa7dbb06489da9486c6e59136391~mv2.jpg'},
-     {coloris:'Off White',url:'https://static.wixstatic.com/media/5da6e1_cbaca92519e046c18a0fdad8df084921~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_cbaca92519e046c18a0fdad8df084921~mv2.jpg'},
-     {coloris:'Black Pump',url:'https://static.wixstatic.com/media/5da6e1_be0ec3ec60744b858f9e23c53bb55259~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_be0ec3ec60744b858f9e23c53bb55259~mv2.jpg'},
-   ]},
-  {id:4,name:'SHIBUYA WIDE',ref:'PAW-SHI',forme:'Optique',prix:59,
-   photos:[
-     {coloris:'Tortoise',url:'https://static.wixstatic.com/media/5da6e1_844a9a2b61534e36aef3eac5b9e1f052~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_844a9a2b61534e36aef3eac5b9e1f052~mv2.jpg'},
-     {coloris:'Black Pump',url:'https://static.wixstatic.com/media/5da6e1_62ac5741ddaf44cd96b41ad33b58d79b~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_62ac5741ddaf44cd96b41ad33b58d79b~mv2.jpg'},
-     {coloris:'Ghost',url:'https://static.wixstatic.com/media/5da6e1_daf190157b6a4621afc72003f0554236~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_daf190157b6a4621afc72003f0554236~mv2.jpg'},
-     {coloris:'Off White',url:'https://static.wixstatic.com/media/5da6e1_1aa854de80f648f291eb2a93f6efac23~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_1aa854de80f648f291eb2a93f6efac23~mv2.jpg'},
-     {coloris:'Storm',url:'https://static.wixstatic.com/media/5da6e1_0e59600eca2c4647881eb41eab8d652d~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_0e59600eca2c4647881eb41eab8d652d~mv2.jpg'},
-   ]},
-  {id:5,name:'AKI',ref:'PAW-AKI',forme:'Optique',prix:49,
-   photos:[
-     {coloris:'Tortoise',url:'https://static.wixstatic.com/media/5da6e1_25c44914c53b4fa1a5f2ed13beb33cda~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_25c44914c53b4fa1a5f2ed13beb33cda~mv2.jpg'},
-     {coloris:'Storm',url:'https://static.wixstatic.com/media/5da6e1_346f629f45414692838cc2ce1e033ec2~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_346f629f45414692838cc2ce1e033ec2~mv2.jpg'},
-     {coloris:'Crystal Coffee',url:'https://static.wixstatic.com/media/5da6e1_5375b77e129a40089b4e1d7c716a4a9e~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_5375b77e129a40089b4e1d7c716a4a9e~mv2.jpg'},
-   ]},
-  {id:6,name:'KAZE',ref:'PAW-KAZ2',forme:'Optique',prix:55,
-   photos:[
-     {coloris:'Tortoise',url:'https://static.wixstatic.com/media/5da6e1_072c39fc39b643fea4ba9ba403e0f149~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_072c39fc39b643fea4ba9ba403e0f149~mv2.jpg'},
-     {coloris:'Crystal Green',url:'https://static.wixstatic.com/media/5da6e1_bfebec8027d140629ccccb9a22dd237b~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_bfebec8027d140629ccccb9a22dd237b~mv2.jpg'},
-     {coloris:'Black Pump',url:'https://static.wixstatic.com/media/5da6e1_a22505044c7644a3aa217aaa97b42f5f~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_a22505044c7644a3aa217aaa97b42f5f~mv2.jpg'},
-   ]},
-  {id:7,name:'KUMO',ref:'PAW-KUM',forme:'Solaire',prix:55,
-   photos:[
-     {coloris:'Tortoise',url:'https://static.wixstatic.com/media/5da6e1_af8516d85c6243318945cb5d3366acd8~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_af8516d85c6243318945cb5d3366acd8~mv2.jpg'},
-     {coloris:'Khaki',url:'https://static.wixstatic.com/media/5da6e1_1f48c936630943c4b1a828f5b0148f6d~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_1f48c936630943c4b1a828f5b0148f6d~mv2.jpg'},
-     {coloris:'Black Pump',url:'https://static.wixstatic.com/media/5da6e1_f8d8b105fe3d4072a5baf189c068ccac~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_f8d8b105fe3d4072a5baf189c068ccac~mv2.jpg'},
-   ]},
-  {id:8,name:'NAO',ref:'PAW-NAO',forme:'Optique',prix:49,
-   photos:[
-     {coloris:'Ghost',url:'https://static.wixstatic.com/media/5da6e1_3d1b30a088254f35a4c4cfdd2f48d02e~mv2.jpg/v1/fill/w_400,h_300,al_c,q_85,enc_avif/5da6e1_3d1b30a088254f35a4c4cfdd2f48d02e~mv2.jpg'},
-   ]},
-];
+// MODELS chargés depuis Supabase via syncLocalData()
+let MODELS = [];
 
 const VERRES_STD=[
   {n:'Transparent',c:'rgba(200,220,255,0.15)'},{n:'Gris très clair',c:'rgba(130,140,150,0.22)'},{n:'Gris clair',c:'rgba(100,110,120,0.38)'},{n:'Gris moyen',c:'rgba(70,80,90,0.52)'},
@@ -1503,6 +1457,7 @@ function nav(page,el){
   if(page==='facturation') { setTimeout(()=>{ factFilter('mois', document.getElementById('fp-mois')); factLoadData(); }, 100); }
   if(page==='produits-admin') setTimeout(renderProduitsAdmin,100);
   if(page==='stocks') setTimeout(updateStockUI,100);
+  if(page==='catalogue') setTimeout(()=>{ renderCatalogue(); },100);
   if(page==='commandes') updateCmdBadges();
   // Scroll top
   document.querySelector('.content')?.scrollTo(0,0);
